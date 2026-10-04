@@ -630,12 +630,10 @@ func build(data: Dictionary) -> void:
 	var spruce_material := _tree_material("res://assets/textures/spruce_v10.png")
 	var oak_material := _tree_material("res://assets/textures/oak_v10.png")
 	preload("res://scripts/render/forest.gd").plant(scenery,spatial_pines)
-	var pine_cards := QuadMesh.new();pine_cards.size=Vector2.ONE;pine_cards.material=spruce_material
-	var oak_cards := QuadMesh.new();oak_cards.size=Vector2.ONE;oak_cards.material=oak_material
 	var forest_batch=preload("res://scripts/render/forest.gd")
-	forest_batch.plant_mesh(scenery,spruce_a,pine_cards,"far_pines",0,172)
-	forest_batch.plant_mesh(scenery,oak_a,oak_cards,"far_oaks",0,110)
-	forest_batch.plant_mesh(scenery,spatial_oaks,forest_batch.broadleaf_mesh(),"spatial_oaks",125)
+	forest_batch.plant_variants(scenery,spatial_pines,"far_pines",420,167,false,true)
+	forest_batch.plant_variants(scenery,spatial_oaks,"far_oaks",420,117,true,true)
+	forest_batch.plant_variants(scenery,spatial_oaks,"spatial_oaks",125,0,true,false)
 
 	var rock := _stone_mesh()
 	_multimesh(rock,_material(Color("77776d")),rocks)

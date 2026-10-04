@@ -1,32 +1,35 @@
 extends RefCounted
 # Spatial branch clusters using licensed photographed needles, not full-tree billboards.
-static func mesh() -> ArrayMesh:
+static func mesh(variant: int=0, low_detail: bool=false) -> ArrayMesh:
 	var trunk := SurfaceTool.new();trunk.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var foliage := SurfaceTool.new();foliage.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var rng := RandomNumberGenerator.new();rng.seed=4817
-	for tier in 12:
-		var y := 1.1+tier*0.57
-		var span := (1.0-float(tier)/13)*2.0
-		for branch in 6:
-			var angle := branch*TAU/6+tier*0.61+rng.randf_range(-0.2,0.2)
-			var along := Vector3(cos(angle),0,sin(angle));var side := Vector3(-sin(angle),0,cos(angle))
-			var base := Vector3(0,y,0);var tip := base+along*span+Vector3.UP*0.14
-			for face in 11:
-				var a := base+side*(0.045 if face==0 else -0.045)
-				var b := tip+Vector3.UP*0.012
-				triangle(trunk,a,b,base+Vector3.UP*0.065,Vector2.ZERO,Vector2(1,1),Vector2(0,1))
-			for leaf in 5:
-				var pos := base+along*span*(0.14+leaf*0.19)+side*rng.randf_range(-0.12,0.12)
-				var cross_side := side*(0.62 if leaf<3 else 0.38)
-				var axis := along*(0.50 if leaf<3 else 0.32)+Vector3.UP*0.18
-				quad(foliage,pos,cross_side,axis)
-				quad(foliage,pos,cross_side*0.72,Vector3.UP*0.45)
-	# Tapered trunk with a buried root foot.
-	for i in 8:
-		var a := float(i)*TAU/8;var b := float(i+1)*TAU/8
-		var lo := Vector3(cos(a)*0.15,-0.18,sin(a)*0.15);var ro := Vector3(cos(b)*0.15,-0.18,sin(b)*0.15)
-		var hi := Vector3(cos(a)*0.015,8.2,sin(a)*0.015);var rh := Vector3(cos(b)*0.015,8.2,sin(b)*0.015)
-		triangle(trunk,lo,hi,ro,Vector2(0,0),Vector2(0,4),Vector2(1,0));triangle(trunk,ro,hi,rh,Vector2(1,0),Vector2(0,4),Vector2(1,4))
+	var rng := RandomNumberGenerator.new();rng.seed=4817+variant*973
+	# Irregular ascending branches: two open-crowned pines and a fuller conifer.
+	tube(trunk,Vector3(0,-0.18,0),Vector3(0.10,5.0,-0.08),0.16,0.065)
+	tube(trunk,Vector3(0.10,5.0,-0.08),Vector3(-0.05,8.2,0.06),0.065,0.008)
+	var branches := 15 if low_detail else 27
+	for branch in branches:
+		var fraction := float(branch)/float(branches-1)
+		var low := 1.4 if variant==2 else 3.1
+		var y := lerpf(low,7.95,fraction)+rng.randf_range(-0.25,0.22)
+		var span := (2.5*(1.0-fraction*0.80) if variant==2 else 1.5+sin(fraction*PI)*1.0-fraction*0.85)*rng.randf_range(0.72,1.18)
+		var angle := branch*2.39996+rng.randf_range(-0.38,0.38)
+		var along := Vector3(cos(angle),0,sin(angle));var side := Vector3(-sin(angle),0,cos(angle))
+		var base := Vector3(0.08,y,0)
+		var elbow := base+along*span*0.52+Vector3.UP*rng.randf_range(-0.18,0.15)
+		var tip := base+along*span+Vector3.UP*rng.randf_range(0.22,0.60)
+		if not low_detail:
+			tube(trunk,base,elbow,0.045,0.026);tube(trunk,elbow,tip,0.026,0.009)
+		var twigs := 3 if low_detail else 5
+		for twig in twigs:
+			var center := elbow.lerp(tip,float(twig)/maxf(twigs-1,1))+side*rng.randf_range(-0.35,0.35)
+			for sprig in (3 if low_detail else 4):
+				var yaw := angle+rng.randf_range(-1.4,1.4)
+				var right := Vector3(-sin(yaw),0,cos(yaw))*rng.randf_range(0.17,0.29)
+				var up := Vector3(cos(yaw)*0.22,0.46,sin(yaw)*0.22)*rng.randf_range(0.85,1.35)
+				var pos := center+Vector3(rng.randf_range(-0.38,0.38),rng.randf_range(-0.10,0.32),rng.randf_range(-0.38,0.38))
+				quad(foliage,pos,right,up)
+				if not low_detail and sprig%2==0:quad(foliage,pos,Vector3(up.x,0.12,up.z)+along*0.20,right+Vector3.UP*0.16)
 	trunk.generate_normals();trunk.generate_tangents();var result := trunk.commit()
 	foliage.generate_normals();foliage.generate_tangents();foliage.commit(result)
 	var bark := StandardMaterial3D.new();bark.albedo_texture=load("res://assets/nature/bark_diff.jpg");bark.roughness=0.92
@@ -41,7 +44,7 @@ static func quad(s: SurfaceTool,p: Vector3,right: Vector3,up: Vector3) -> void:
 	triangle(s,p-right-up,p-right+up,p+right-up,Vector2(0.01,0.45),Vector2(0.01,0.0),Vector2(0.23,0.45))
 	triangle(s,p+right-up,p-right+up,p+right+up,Vector2(0.23,0.45),Vector2(0.01,0.0),Vector2(0.23,0.0))
 static func plant(parent: Node3D,transforms: Array[Transform3D]) -> void:
-	plant_mesh(parent,transforms,mesh(),"spatial_pines",185)
+	plant_variants(parent,transforms,"spatial_pines",175,0.0,false,false)
 static func plant_mesh(parent: Node3D,transforms: Array[Transform3D],tree: Mesh,group: String,distance: float,begin_distance: float=0.0) -> void:
 	var chunks := {}
 	var chunk_size := 32.0 if group=="verge_grass" else 128.0
@@ -63,31 +66,39 @@ static func plant_mesh(parent: Node3D,transforms: Array[Transform3D],tree: Mesh,
 		node.visibility_range_end=distance;node.visibility_range_end_margin=12
 		parent.add_child(node)
 
-static func broadleaf_mesh() -> ArrayMesh:
+static func plant_variants(parent: Node3D, transforms: Array[Transform3D], group: String, distance: float, begin_distance: float, deciduous: bool, low_detail: bool) -> void:
+	var variants := [[],[],[]]
+	for i in transforms.size():variants[i%3].append(transforms[i])
+	for variant in 3:
+		var geometry := broadleaf_mesh(variant,low_detail) if deciduous else mesh(variant,low_detail)
+		var subset: Array[Transform3D]=[];subset.assign(variants[variant])
+		plant_mesh(parent,subset,geometry,group,distance,begin_distance)
+
+static func broadleaf_mesh(variant: int=0, low_detail: bool=false) -> ArrayMesh:
 	var wood := SurfaceTool.new();wood.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var leaves := SurfaceTool.new();leaves.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var rng := RandomNumberGenerator.new();rng.seed=6701
+	var rng := RandomNumberGenerator.new();rng.seed=6701+variant*1709
 	# Closed trunk and radial branch tubes, followed by spatial crown clusters.
 	tube(wood,Vector3(0,-0.18,0),Vector3(0,4.7,0),0.23,0.07)
 	for branch in 9:
 		var angle := branch*2.39996
 		var start := Vector3(0,2.4+branch*0.21,0)
-		var end := start+Vector3(cos(angle)*2.0,1.45,sin(angle)*2.0)
+		var end := start+Vector3(cos(angle)*rng.randf_range(1.6,2.4),rng.randf_range(1.1,1.9),sin(angle)*rng.randf_range(1.6,2.4))
 		tube(wood,start,end,0.095,0.025)
-		for cluster in 5:
+		for cluster in (3 if low_detail else 4):
 			var center := end+Vector3(rng.randf_range(-0.7,0.7),rng.randf_range(-0.15,1.5),rng.randf_range(-0.7,0.7))
-			for face in 11:
+			for face in (5 if low_detail else 14):
 				var a := rng.randf_range(-PI,PI)
-				var right := Vector3(cos(a),0,sin(a))*rng.randf_range(0.36,0.62)
+				var right := Vector3(cos(a),0,sin(a))*rng.randf_range(0.35,0.60)
 				var up := Vector3(-sin(a)*0.15,0.45,cos(a)*0.15)
 				if face%3==2:up=Vector3(-sin(a),0.15,cos(a))*0.5
 				var leaf_center := center+Vector3(rng.randf_range(-0.8,0.8),rng.randf_range(-0.5,0.65),rng.randf_range(-0.8,0.8))
 				var tint := Color(rng.randf_range(0.83,1.07),rng.randf_range(0.9,1.1),rng.randf_range(0.8,1.0))
 				var uv0 := Vector2(rng.randf_range(0.08,0.55),rng.randf_range(0.08,0.34))
 				for pair in [[leaf_center-right-up,Vector2(0,1)],[leaf_center-right+up,Vector2(0,0)],[leaf_center+right-up,Vector2(1,1)],[leaf_center+right-up,Vector2(1,1)],[leaf_center-right+up,Vector2(0,0)],[leaf_center+right+up,Vector2(1,0)]]:
-					leaves.set_color(tint);leaves.set_uv(uv0+pair[1]*Vector2(0.24,0.24));leaves.set_uv2(pair[1]);leaves.add_vertex(pair[0])
+					leaves.set_normal((pair[0]-Vector3(0,4.4,0)).normalized());leaves.set_color(tint);leaves.set_uv(uv0+pair[1]*Vector2(0.24,0.24));leaves.set_uv2(pair[1]);leaves.add_vertex(pair[0])
 	wood.generate_normals();wood.generate_tangents();var result := wood.commit()
-	leaves.generate_normals();leaves.commit(result)
+	leaves.commit(result)
 	var bark := StandardMaterial3D.new();bark.albedo_texture=load("res://assets/nature/bark_diff.jpg");bark.albedo_color=Color(0.65,0.62,0.55);bark.roughness=0.95
 	result.surface_set_material(0,bark)
 	var leaf_mat := ShaderMaterial.new();leaf_mat.shader=load("res://assets/shaders/broadleaf.gdshader");leaf_mat.set_shader_parameter("leaf_tex",load("res://assets/textures/oak_v10.png"));result.surface_set_material(1,leaf_mat)

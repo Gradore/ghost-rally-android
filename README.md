@@ -1,6 +1,12 @@
-# GHOST RALLY — Android simulation alpha 0.19.0
+# GHOST RALLY — Android simulation alpha 0.20.0
 
 Native Godot 4.4.1 project, Mobile/Vulkan renderer, Jolt and Terrain3D. Recovered from the public 0.10.0 source release and developed through locally verified milestones.
+
+## Changes in 0.20
+
+- Replace uniform horizontal pine tiers with irregular branches and three tree variants. Nearby and distant trees now share matching 3D silhouettes at different mesh detail levels. Broadleaf crowns have softer cutouts and rounded lighting normals; start-area tree cards become spatial crowns.
+- All 81 stored Großräschen start-area building footprints match a fresh OSM snapshot. Google Maps map/satellite view was checked for landmark layout. Preserve coordinates/orientation while correcting the hotel T-shaped roof, flat sports hall and curved pavilion roofs, and the three IBA terrace cubes within their mapped footprint. Window details now face outward. Correct local-axis scaling for batched rotated facade parts, rails and piers; their original size and orientation are preserved.
+- Add footprint provenance and a regression for world-coordinate alignment and roof containment. Fourteen groups and stored route integrity pass; actual north-up inspection and race captures accompany Android preview 0.20. Device FPS is unmeasured.
 
 ## Changes in 0.19
 

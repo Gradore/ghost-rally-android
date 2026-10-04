@@ -62,20 +62,25 @@ func building(data: Dictionary) -> void:
 	var points := PackedVector2Array()
 	var center := Vector3.ZERO
 	for ll in data.p:
-		var p := geo(ll); points.append(Vector2(p.x,p.z)); center+=p
+		var p := geo(ll); points.append(Vector2(p.x,p.z))
 	if points[0].is_equal_approx(points[-1]): points.remove_at(points.size()-1)
-	center/=float(data.p.size())
+	for point in points:center+=Vector3(point.x,0,point.y)
+	center/=float(points.size())
 	var height := float(data.h)
-	var root := Node3D.new(); add_child(root)
+	var root := Node3D.new();root.name="Building_"+str(data.id);root.set_meta("osm_id",str(data.id));root.set_meta("footprint",points);add_child(root)
+	if data.kind=="terraces":
+		_terrace_building(root,points,height);return
 	var wall := SurfaceTool.new(); wall.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for i in points.size():
 		var a := Vector3(points[i].x,0,points[i].y)
 		var j := (i+1)%points.size(); var b := Vector3(points[j].x,0,points[j].y)
 		var edge := b-a; var normal := Vector3(-edge.z,0,edge.x).normalized()
+		var probe := Vector2((a.x+b.x)*0.5+normal.x*0.1,(a.z+b.z)*0.5+normal.z*0.1)
+		if Geometry2D.is_point_in_polygon(probe,points):normal=-normal
 		for v in [a,a+Vector3.UP*height,b,b,a+Vector3.UP*height,b+Vector3.UP*height]:
 			wall.set_normal(normal); wall.add_vertex(v)
 		var bay_count := int(edge.length()/3.2)
-		var levels := 3 if data.kind=="hotel" else 1 if data.kind=="tourist" else 2
+		var levels := 3 if data.kind=="hotel" else 1 if data.kind in ["tourist","sports","terraces","pavilion"] else 2
 		for floor_id in levels:
 			for bay in bay_count:
 				var at := a.lerp(b,(float(bay)+0.5)/maxf(bay_count,1))+Vector3.UP*(1.8+floor_id*3.15)+normal*0.04
@@ -88,25 +93,57 @@ func building(data: Dictionary) -> void:
 		line(a+Vector3.UP*(height-0.15),b+Vector3.UP*(height-0.15),0.28,0.24,plaster)
 	var walls := MeshInstance3D.new(); walls.mesh=wall.commit(); walls.material_override=plaster; root.add_child(walls)
 	walls.create_trimesh_collision()
+	if data.get("roof","flat")=="flat":
+		polygon(points,height+0.12,mat("aab1ad"))
 	if data.kind=="tourist":
-		polygon(points,height+0.12,mat("c0c2ba"))
 		var sign := Label3D.new(); sign.text="TOURIST i"; sign.font_size=64; sign.pixel_size=0.028
 		sign.modulate=Color("324452"); sign.position=center+Vector3(0,height-0.6,0)
 		sign.rotation.y=world.metric_rotation+PI*0.5; root.add_child(sign)
-	else:
-		var roof := SurfaceTool.new(); roof.begin(Mesh.PRIMITIVE_TRIANGLES)
-		# Pitched roof faces follow the building footprint, rather than a generic city box.
-		var peak := center+Vector3.UP*(height+3.0)
-		for i in points.size():
-			var j := (i+1)%points.size()
-			var a := Vector3(points[i].x,height,points[i].y); var b := Vector3(points[j].x,height,points[j].y)
-			var inner_a := a.lerp(peak,0.72); var inner_b := b.lerp(peak,0.72)
-			inner_a.y=peak.y; inner_b.y=peak.y
-			for v in [a,b,inner_a,b,inner_b,inner_a]:roof.add_vertex(v)
-		roof.generate_normals(); var mesh := MeshInstance3D.new(); mesh.mesh=roof.commit(); mesh.material_override=red_roof; root.add_child(mesh)
-		if data.kind=="hotel":
-			var label := Label3D.new(); label.text="SEEHOTEL"; label.font_size=64; label.pixel_size=0.025
-			label.position=center+Vector3(0,8.8,0); label.rotation.y=world.metric_rotation+PI*0.5; label.modulate=Color("5b655f"); root.add_child(label)
+	if data.get("roof", "flat")=="hotel_wings":
+		# The mapped T-shaped hotel is two wings; no roof bridges the courtyard.
+		_hip_roof(root,PackedVector2Array([points[4],points[1],points[2],points[3]]),height)
+		_hip_roof(root,PackedVector2Array([points[5],points[0],points[7],points[6]]),height)
+	elif data.get("roof","flat")=="hipped" and points.size()==4:
+		_hip_roof(root,points,height)
+	if data.kind=="hotel":
+		var label := Label3D.new();label.text="SEEHOTEL";label.font_size=64;label.pixel_size=0.025
+		label.position=center+Vector3(0,8.8,0);label.rotation.y=world.metric_rotation+PI*0.5;label.modulate=Color("5b655f");root.add_child(label)
+
+func _terrace_building(root: Node3D, points: PackedVector2Array, height: float) -> void:
+	# Three cubes within the mapped shared terrace footprint.
+	if points[0].distance_to(points[1])<points[1].distance_to(points[2]):
+		points=PackedVector2Array([points[1],points[2],points[3],points[0]])
+	var near := (points[0]+points[3])*0.5;var far := (points[1]+points[2])*0.5
+	var axis := (far-near).normalized();var width := points[0].distance_to(points[3])
+	var span := near.distance_to(far);var angle := atan2(axis.x,axis.y)
+	polygon(points,0.08,stone)
+	root.set_meta("terrace_cubes",3)
+	for cube in 3:
+		var pos2 := near+axis*(width*0.5+cube*(span-width)*0.5)
+		var center := Vector3(pos2.x,height*0.5,pos2.y)
+		var volume := box(root,center,Vector3(width,height,width),plaster);volume.rotation.y=angle
+		var collider := StaticBody3D.new();collider.position=center;collider.rotation.y=angle;root.add_child(collider)
+		var shape := CollisionShape3D.new();var box_shape := BoxShape3D.new();box_shape.size=Vector3(width,height,width);shape.shape=box_shape;collider.add_child(shape)
+		var cap := box(root,center+Vector3.UP*(height*0.5+0.10),Vector3(width,0.18,width),mat("b8bcb8"));cap.rotation.y=angle
+		for side in [-1.0,1.0]:
+			var normal := Vector3(cos(angle)*side,0,-sin(angle)*side)
+			var window := box(root,center+normal*(width*0.5+0.03),Vector3(0.065,height*0.68,width*0.68),glass);window.rotation.y=angle
+
+func _hip_roof(parent: Node3D, points: PackedVector2Array, height: float) -> void:
+	if points[0].distance_to(points[1])<points[1].distance_to(points[2]):
+		points=PackedVector2Array([points[1],points[2],points[3],points[0]])
+	var a := Vector3(points[0].x,height,points[0].y);var b := Vector3(points[1].x,height,points[1].y)
+	var c := Vector3(points[2].x,height,points[2].y);var d := Vector3(points[3].x,height,points[3].y)
+	var near := (a+d)*0.5;var far := (b+c)*0.5
+	var axis := (far-near).normalized();var inset := a.distance_to(d)*0.45
+	var rise := minf(3.0,a.distance_to(d)*0.28)
+	var r0 := near+axis*inset+Vector3.UP*rise;var r1 := far-axis*inset+Vector3.UP*rise
+	var st := SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for triangle in [[a,b,r0],[b,r1,r0],[b,c,r1],[c,d,r1],[d,r0,r1],[d,a,r0]]:
+		var normal: Vector3=(triangle[2]-triangle[0]).cross(triangle[1]-triangle[0]).normalized()
+		if normal.y<0:triangle.reverse();normal=-normal
+		for vertex in triangle:st.set_normal(normal);st.add_vertex(vertex)
+	var roof := MeshInstance3D.new();roof.mesh=st.commit();roof.material_override=red_roof;parent.add_child(roof)
 
 func configure(track_world: Node3D) -> void:
 	world=track_world
@@ -150,14 +187,18 @@ func configure(track_world: Node3D) -> void:
 	_landscaping()
 	_batch_details()
 
+func _detail_transform(node: MeshInstance3D) -> Transform3D:
+	var t := global_transform.affine_inverse()*node.global_transform
+	t.basis=t.basis*Basis.from_scale(node.mesh.size)
+	return t
+
 func _batch_details() -> void:
 	var groups := {}
 	for node in find_children("*","MeshInstance3D",true,false):
 		if not node.mesh is BoxMesh: continue
 		var key: int=node.material_override.get_instance_id()
 		if not groups.has(key):groups[key]={"material":node.material_override,"transforms":[]}
-		var t: Transform3D=global_transform.affine_inverse()*node.global_transform
-		t.basis=t.basis.scaled(node.mesh.size)
+		var t := _detail_transform(node)
 		groups[key].transforms.append(t)
 		node.queue_free()
 	for group in groups.values():
@@ -178,10 +219,9 @@ func _landscaping() -> void:
 	var trees: Array[Transform3D]=[]
 	for ll in [[51.57575,14.00902],[51.57566,14.009],[51.57555,14.00907],[51.57543,14.00895],[51.57634,14.00912],[51.57642,14.00934],[51.57618,14.00975],[51.57587,14.00970],[51.57574,14.00968],[51.57495,14.0105],[51.57505,14.01048],[51.57518,14.01055]]:
 		var p := geo(ll)
-		trees.append(Transform3D(Basis().scaled(Vector3(9,12,1)),p+Vector3.UP*6))
+		trees.append(Transform3D(Basis().scaled(Vector3.ONE*1.5),p))
 		world.add_tree_collider(p,3.0)
-	var card := QuadMesh.new();card.size=Vector2.ONE
-	world._multimesh(card,world._tree_material("res://assets/textures/oak_v10.png"),trees)
+	preload("res://scripts/render/forest.gd").plant_variants(self,trees,"landmark_oaks",300,0,true,false)
 	for ll in [[51.57554,14.00970],[51.57566,14.00970],[51.57580,14.00970]]:_palm(geo(ll))
 
 func _palm(at: Vector3) -> void:

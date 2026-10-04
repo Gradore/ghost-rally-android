@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode cull_disabled;
+render_mode cull_disabled, alpha_to_coverage;
 uniform sampler2D leaf_tex:source_color,filter_linear_mipmap_anisotropic;
 varying vec2 local_uv;
 void vertex(){
@@ -13,10 +13,10 @@ void fragment(){
  float angle=atan(p.y,p.x);
  float irregular=0.10*sin(angle*9.0)+0.07*sin(angle*17.0+1.3);
  float shape=1.0-smoothstep(0.64,0.88,length(p)+irregular);
- float gaps=sin(local_uv.x*47.0+sin(local_uv.y*19.0))*sin(local_uv.y*39.0);
- shape*=smoothstep(-0.78,-0.18,gaps);
  ALPHA=leaf.a*shape;
- ALPHA_SCISSOR_THRESHOLD=0.42;
+ ALPHA_SCISSOR_THRESHOLD=0.36;
+ ALPHA_ANTIALIASING_EDGE=0.20;
+ ALPHA_TEXTURE_COORDINATE=UV*vec2(textureSize(leaf_tex,0));
  ALBEDO=leaf.rgb*COLOR.rgb*vec3(0.66,0.81,0.60);
  ROUGHNESS=0.9;
  BACKLIGHT=vec3(0.16,0.22,0.06);
