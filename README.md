@@ -1,6 +1,13 @@
-# GHOST RALLY — Android simulation alpha 0.15.0
+# GHOST RALLY — Android simulation alpha 0.16.0
 
 Native Godot 4.4.1 project, Mobile/Vulkan renderer, Jolt and Terrain3D. Recovered from the public 0.10.0 source release and developed through locally verified milestones.
+
+## Changes in 0.16
+
+- Spatial broadleaf trunks, branches and textured crown clusters replace nearby full-tree cards. Pines have fuller branch/needle geometry. Both distant tree species are now chunked: their LOD distance follows local terrain cells instead of the world origin.
+- 22 bent blades per grass clump, subtle wind, root/tip tint and spatial color variation. Dense roadside grass is rendered in 32 m cells with an 85 m visibility budget instead of drawing the entire stage's grass. Density and range are visual choices; phone FPS remains unmeasured.
+- Textured irregular road shoulders blend gravel into forest soil, removing straight dark boundary bands. ACES tonemapping, tuned sun/ambient balance, sharper car body shading, painted A/C pillars and less mirror-like glass.
+- A separate visual RNG preserves all 0.15 tree collider positions. The WP1 collider hash is identical to the previous source; existing progression, mapped WPs and physics keys remain intact.
 
 ## Changes in 0.15
 
@@ -39,7 +46,7 @@ godot --headless --export-debug "Android Preview" ../outputs/GhostRally-0.14.0-p
 
 AGENTS.md lists the complete test suite. docs/VALIDATION-0.14.md records acceptance, limitations and the Dummy-audio shutdown warning. Captures come from actual Mobile/Vulkan rendering with desktop software rendering; they are not phone benchmarks.
 
-Preview package: com.ghostrally.racer.preview, versionCode 15. It retains the previous debug signer and can update the previous preview. Production signing material is absent; do not replace it. No production AAB or Play Store submission is claimed.
+Preview package: com.ghostrally.racer.preview, versionCode 16. It retains the previous debug signer and can update the previous preview. Production signing material is absent; do not replace it. No production AAB or Play Store submission is claimed.
 
 ## Remaining work and credits
 

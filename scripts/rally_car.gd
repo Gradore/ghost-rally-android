@@ -31,6 +31,7 @@ func _box(parent: Node3D, size: Vector3, pos: Vector3, mat: Material) -> MeshIns
 func _loft(parent: Node3D, rings: Array, mat: Material) -> void:
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	surface.set_smooth_group(-1)
 	for i in range(rings.size()-1):
 		for j in rings[i].size():
 			var next: int = (j+1)%rings[i].size()
@@ -62,12 +63,12 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 	material=_mat(paint,0.28,0.25,ghost)
 	material.clearcoat_enabled=not ghost
 	material.clearcoat=0.80
-	material.clearcoat_roughness=0.20
+	material.clearcoat_roughness=0.26
 	material.cull_mode=BaseMaterial3D.CULL_DISABLED
 	var trim := _mat(Color(0.1,0.16,0.18,0.3) if ghost else Color("12171b"),0.8,0.05,ghost)
 	var glass := _mat(Color(0.15,0.35,0.45,0.3) if ghost else Color("263a44"),0.42,0.0,ghost)
-	glass.metallic=0.35
-	glass.roughness=0.16
+	glass.metallic=0.12
+	glass.roughness=0.25
 	glass.cull_mode=BaseMaterial3D.CULL_DISABLED
 	var chrome := _mat(Color("aeb6ba"),0.2,0.85,ghost)
 	var length := 4.87 if voc else (3.95 if car.drive=="FWD" else 4.40)
@@ -99,6 +100,12 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 	_loft(body,cabin,glass)
 	_box(body,Vector3(width*0.73,0.07,1.15),Vector3(0,1.47,0.27),material)
 	for side in [-1.0,1.0]:
+		for spec in [[-0.82,0.91,-0.28,1.44],[0.83,1.44,1.38,0.94]]:
+			var factor := 1.0 if voc else 0.86
+			var start := Vector3(side*width*0.405,spec[1],spec[0]*factor)
+			var end := Vector3(side*width*0.365,spec[3],spec[2]*factor)
+			var pillar := _box(body,Vector3(0.075,start.distance_to(end),0.075),(start+end)*0.5,material)
+			pillar.rotation.x=atan2(end.z-start.z,end.y-start.y)
 		_box(body,Vector3(0.055,0.51,0.09),Vector3(side*width*0.385,1.17,0.38),trim)
 		_box(body,Vector3(0.14,0.055,0.06),Vector3(side*width*0.51,0.82,0.34),chrome)
 		_box(body,Vector3(0.14,0.055,0.06),Vector3(side*width*0.51,0.82,0.94),chrome)

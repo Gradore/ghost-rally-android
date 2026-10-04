@@ -162,8 +162,8 @@ func build_scene() -> void:
 	environment.sky=atmosphere
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color("9bb7b2")
-	environment.ambient_light_energy = 0.32
-	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	environment.ambient_light_energy = 0.38
+	environment.tonemap_mode = Environment.TONE_MAPPER_ACES
 	environment.fog_enabled = true
 	environment.fog_density = 0.0016
 	environment.fog_sky_affect = 0.08
@@ -172,7 +172,7 @@ func build_scene() -> void:
 	sky.environment = environment
 	add_child(sky)
 	sun = DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-24,35,0)
+	sun.rotation_degrees = Vector3(-28,35,0)
 	sun.light_color = Color("ffe5bc")
 	sun.light_energy = 1.18
 	sun.shadow_enabled = true

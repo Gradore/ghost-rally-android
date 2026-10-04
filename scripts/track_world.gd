@@ -511,7 +511,11 @@ func build(data: Dictionary) -> void:
 		var start_area: Node3D=load("res://scripts/start_area.gd").new()
 		scenery.add_child(start_area)
 		start_area.configure(self)
-	_add_strip(road,road_width+1.4,0.015,_textured_material("res://assets/nature/forrest_ground_01_diff.jpg",Color("797867")))
+	var shoulder := ShaderMaterial.new();shoulder.shader=load("res://assets/shaders/road_shoulder.gdshader")
+	shoulder.set_shader_parameter("grass_tex",load("res://assets/nature/forrest_ground_01_diff.jpg"))
+	shoulder.set_shader_parameter("gravel_tex",load("res://assets/nature/gravel_floor_diff.jpg"))
+	shoulder.set_shader_parameter("half_width",road_width*0.5)
+	_add_strip(road,road_width+3.0,0.015,shoulder)
 	var driving_surface: Material = _textured_material("res://assets/textures/asphalt_v10.png" if asphalt else "res://assets/nature/gravel_floor_diff.jpg",Color(0.82,0.84,0.83) if asphalt else Color(0.92,0.86,0.75))
 	if not asphalt:
 		var gravel_shader := ShaderMaterial.new()
@@ -538,11 +542,13 @@ func build(data: Dictionary) -> void:
 	_finish_gate(8.0,Color("f5c950"))
 	if track.state_code!="12": _finish_gate(float(track.length)-5.0,Color("78dcd1"))
 	var rng := RandomNumberGenerator.new(); rng.seed = int(track.seed)*70821
+	var grass_rng := RandomNumberGenerator.new();grass_rng.seed=int(track.seed)*70821+357
 	var spatial_pines: Array[Transform3D] = []
 	var spruce_a: Array[Transform3D] = []
 	var spruce_b: Array[Transform3D] = []
 	var oak_a: Array[Transform3D] = []
 	var oak_b: Array[Transform3D] = []
+	var spatial_oaks: Array[Transform3D] = []
 	var rocks: Array[Transform3D] = []
 	var bushes: Array[Transform3D] = []
 	var grass_dark: Array[Transform3D] = []
@@ -560,12 +566,13 @@ func build(data: Dictionary) -> void:
 				var grass_position: Vector3 = center_at(p)+direction*side*(verge+rng.randf_range(0.8,7.0))+Vector3(rng.randf_range(-2.0,2.0),0.23,rng.randf_range(-2.0,2.0))
 				if scenery_clear(grass_position,0.9):
 					grass_position.y=ground_height(grass_position)+0.02
-					var tuft := Transform3D(Basis().scaled(Vector3(rng.randf_range(0.45,0.9),rng.randf_range(0.35,0.65),rng.randf_range(0.45,0.9))),grass_position)
+					var tuft := Transform3D(Basis().rotated(Vector3.UP,grass_rng.randf_range(-PI,PI)).scaled(Vector3(rng.randf_range(0.65,1.2),rng.randf_range(0.55,1.05),rng.randf_range(0.65,1.2))),grass_position)
 					if rng.randf()<0.5: grass_dark.append(tuft)
 					else: grass_light.append(tuft)
-					for extra in 3:
+					for extra in 9:
 						var dense := tuft
-						dense.origin+=Vector3(rng.randf_range(-1.8,1.8),0,rng.randf_range(-1.8,1.8))
+						var scatter_rng := rng if extra<3 else grass_rng
+						dense.origin+=Vector3(scatter_rng.randf_range(-1.8,1.8),0,scatter_rng.randf_range(-1.8,1.8))
 						if scenery_clear(dense.origin,0.4):
 							dense.origin.y=ground_height(dense.origin)+0.02
 							grass_dark.append(dense)
@@ -596,6 +603,7 @@ func build(data: Dictionary) -> void:
 			var view_b := Transform3D(Basis().rotated(Vector3.UP,angle+PI*0.5).scaled(Vector3(breadth,height,1.0)),sprite_center)
 			if deciduous:
 				oak_a.append(view_a)
+				spatial_oaks.append(Transform3D(Basis().rotated(Vector3.UP,angle).scaled(Vector3.ONE*(height/8.0)),origin))
 				oak_b.append(view_b)
 			else:
 				spruce_a.append(view_a)
@@ -622,19 +630,22 @@ func build(data: Dictionary) -> void:
 	var spruce_material := _tree_material("res://assets/textures/spruce_v10.png")
 	var oak_material := _tree_material("res://assets/textures/oak_v10.png")
 	preload("res://scripts/render/forest.gd").plant(scenery,spatial_pines)
-	_multimesh(card,spruce_material,spruce_a)
-	var far_pines: MultiMeshInstance3D=scenery.get_child(scenery.get_child_count()-1)
-	far_pines.visibility_range_begin=172
-	far_pines.visibility_range_begin_margin=12
-	# One camera-facing silhouette prevents paper-thin edge views.
-	_multimesh(card,oak_material,oak_a)
+	var pine_cards := QuadMesh.new();pine_cards.size=Vector2.ONE;pine_cards.material=spruce_material
+	var oak_cards := QuadMesh.new();oak_cards.size=Vector2.ONE;oak_cards.material=oak_material
+	var forest_batch=preload("res://scripts/render/forest.gd")
+	forest_batch.plant_mesh(scenery,spruce_a,pine_cards,"far_pines",0,172)
+	forest_batch.plant_mesh(scenery,oak_a,oak_cards,"far_oaks",0,110)
+	forest_batch.plant_mesh(scenery,spatial_oaks,forest_batch.broadleaf_mesh(),"spatial_oaks",125)
 
 	var rock := SphereMesh.new(); rock.radial_segments=6; rock.rings=3
 	_multimesh(rock,_material(Color("77776d")),rocks)
 	_multimesh(rock,_material(Color("35614a") if track.place=="NORDIC FOREST" else Color("63735a")),bushes)
 	var tuft_mesh := _grass_mesh()
-	_multimesh(tuft_mesh,_material(Color("405c3a")),grass_dark)
-	_multimesh(tuft_mesh,_material(Color("8a9b58")),grass_light)
+	var grass_mat := ShaderMaterial.new();grass_mat.shader=load("res://assets/shaders/verge_grass.gdshader")
+	tuft_mesh.surface_set_material(0,grass_mat)
+	var grass_batch=preload("res://scripts/render/forest.gd")
+	grass_batch.plant_mesh(scenery,grass_dark,tuft_mesh,"verge_grass",85)
+	grass_batch.plant_mesh(scenery,grass_light,tuft_mesh,"verge_grass",85)
 	var post_mesh := BoxMesh.new()
 	_multimesh(post_mesh,_material(Color("e1dbc1")),posts)
 	_multimesh(post_mesh,_material(Color("d39d5a"),0.55,Color("6b4322")),reflectors)
@@ -645,12 +656,17 @@ func build(data: Dictionary) -> void:
 
 func _grass_mesh() -> ArrayMesh:
 	var st := SurfaceTool.new(); st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for i in 9:
-		var a := float(i)*2.39996
-		var base := Vector3(cos(a)*0.36,0,sin(a)*0.36)
-		var side := Vector3(cos(a+1.57),0,sin(a+1.57))*0.035
-		var tip := base+Vector3(cos(a)*0.12,0.40+float(i%3)*0.12,sin(a)*0.12)
-		for v in [base-side,base+side,tip]: st.add_vertex(v)
+	for i in 22:
+		var angle := float(i)*2.39996
+		var base := Vector3(cos(angle)*0.32,0,sin(angle)*0.32)
+		var side := Vector3(cos(angle+1.57),0,sin(angle+1.57))*0.019
+		var bend := Vector3(cos(angle)*0.16,0,sin(angle)*0.16)
+		var height := 0.26+float(i%5)*0.065
+		var mid := base+bend*0.35+Vector3.UP*height*0.55
+		var tip := base+bend+Vector3.UP*height
+		var color := Color(0.65+float(i%3)*0.08,0.73+float(i%4)*0.06,0.43,1)
+		for pair in [[base-side,0.0],[base+side,0.0],[mid-side*0.65,0.55],[base+side,0.0],[mid+side*0.65,0.55],[mid-side*0.65,0.55],[mid-side*0.65,0.55],[mid+side*0.65,0.55],[tip,1.0]]:
+			st.set_color(color);st.set_uv(Vector2(0,pair[1]));st.add_vertex(pair[0])
 	st.generate_normals()
 	return st.commit()
 
