@@ -15,6 +15,9 @@ var surface_segments: Array = []
 var source_route_length := 1.0
 var mapped_buildings: Array[PackedVector2Array] = []
 var mapped_building_cells := {}
+var tree_grid := {}
+var tree_max_radius := 0.0
+var tree_candidates_last := 0
 var tree_centers := PackedVector2Array()
 var tree_radii := PackedFloat32Array()
 var water_polygons: Array[PackedVector2Array] = []
@@ -295,6 +298,10 @@ func add_obstacle(center: Vector3, dimensions: Vector3) -> void:
 	scenery.add_child(obstacle)
 
 func add_tree_collider(origin: Vector3, size: float) -> void:
+	var cell := Vector2i(floori(origin.x/32),floori(origin.z/32))
+	if not tree_grid.has(cell): tree_grid[cell]=[]
+	tree_grid[cell].append(tree_centers.size())
+	tree_max_radius=maxf(tree_max_radius,size*0.10)
 	tree_centers.append(Vector2(origin.x,origin.z))
 	tree_radii.append(size*0.10)
 	var trunk := StaticBody3D.new()
@@ -317,7 +324,15 @@ func sweep_trees(from: Vector3, to: Vector3, car_radius: float) -> Dictionary:
 	var length_squared := motion.length_squared()
 	var earliest := 2.0
 	var result := {}
-	for i in tree_centers.size():
+	var padding := tree_max_radius+car_radius+1.0
+	var low := Vector2i(floori((minf(start.x,end.x)-padding)/32),floori((minf(start.y,end.y)-padding)/32))
+	var high := Vector2i(floori((maxf(start.x,end.x)+padding)/32),floori((maxf(start.y,end.y)+padding)/32))
+	var candidates: Array=[]
+	for x in range(low.x,high.x+1):
+		for z in range(low.y,high.y+1): candidates.append_array(tree_grid.get(Vector2i(x,z),[]))
+	candidates.sort() # Retain deterministic tie-breaking.
+	tree_candidates_last=candidates.size()
+	for i in candidates:
 		var center := tree_centers[i]
 		var radius := tree_radii[i]+car_radius
 		if start.distance_squared_to(center)>pow(radius+motion.length()+1.0,2.0): continue
@@ -599,7 +614,7 @@ func build(data: Dictionary) -> void:
 					var tuft := Transform3D(Basis().rotated(Vector3.UP,grass_rng.randf_range(-PI,PI)).scaled(Vector3(rng.randf_range(0.65,1.2),rng.randf_range(0.55,1.05),rng.randf_range(0.65,1.2))),grass_position)
 					if rng.randf()<0.5: grass_dark.append(tuft)
 					else: grass_light.append(tuft)
-					for extra in 9:
+					for extra in 3:
 						var dense := tuft
 						var scatter_rng := rng if extra<3 else grass_rng
 						dense.origin+=Vector3(scatter_rng.randf_range(-1.8,1.8),0,scatter_rng.randf_range(-1.8,1.8))
@@ -673,8 +688,8 @@ func build(data: Dictionary) -> void:
 	var grass_mat := ShaderMaterial.new();grass_mat.shader=load("res://assets/shaders/verge_grass.gdshader")
 	tuft_mesh.surface_set_material(0,grass_mat)
 	var grass_batch=preload("res://scripts/render/forest.gd")
-	grass_batch.plant_mesh(scenery,grass_dark,tuft_mesh,"verge_grass",85)
-	grass_batch.plant_mesh(scenery,grass_light,tuft_mesh,"verge_grass",85)
+	grass_batch.plant_mesh(scenery,grass_dark,tuft_mesh,"verge_grass",45)
+	grass_batch.plant_mesh(scenery,grass_light,tuft_mesh,"verge_grass",45)
 	var ferns: Array[Transform3D]=[]
 	for i in range(0,grass_dark.size(),23):
 		var t: Transform3D=grass_dark[i];t.basis=t.basis.scaled(Vector3.ONE*1.45);ferns.append(t)

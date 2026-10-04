@@ -1,0 +1,13 @@
+# 0.22 validation
+
+Godot 4.4.1, Mobile/Vulkan renderer, Jolt, original Android debug signer and unchanged preview package.
+
+All fifteen AGENTS.md Godot groups pass, plus controls22, driving22 and tree22. Existing vegetation regression retains the exact collision-tree digest. Existing physics groups verify deterministic integration across different presentation rates and supported fixed ticks. The new driving calibration gives 10.4667 s 0–100 at both 240 and 720 Hz, and 184.52 / 184.50 km/h after 150 seconds on flat dry tarmac. Peak torque-curve output is approximately 131 PS. Low-speed 10.8 / 21.6 / 32.4 km/h left-turn probes have maximum lateral velocity 0.30 / 0.29 / 0.22 m/s.
+
+The UI regression tests thumb signs at twelve starting positions, release, tilt calibration/deadzone/inversion, showroom reuse, pause/settings return, recovery and stage reuse on restart. All 2,137 MV building footprints now have colliders. Forty actual walls are queried from both sides against the Jolt space, including original winding. Coordinates, roofs and the seventeen routes remain covered by the prior map tests. The MV offline XML test verifies all 451 source edges and 2,137 original building outlines. The Großräschen stored loop integrity check passes; its complete original 2026-10-03 OSM snapshot is not present in this runtime, so independent original-source edge verification was not repeated.
+
+Four hundred swept-tree queries match the old exhaustive algorithm, including earliest tree ID and resolved position. This run: 1,173 MV trees, average 0.3275 candidates per query; 82,305 microseconds exhaustive vs 665 microseconds indexed for the same 400 paths. These are server CPU measurements of this routine, not phone FPS or a whole-game frame-rate claim.
+
+Actual rendered screenshots inspect garage, home, driving settings and race. Race geometry is rendered at 80% scale without multisample anti-aliasing; Fluid profile uses 65% and disables sun shadows. Garage has full-scale 3D rendering and 2x MSAA. Runtime render uses software Vulkan for inspection; it cannot predict the user's mobile GPU performance. Android gravity and accelerometer are enabled. Godot 4.4 Android source confirms sensor axes are remapped to display rotation before reaching the game. Physical tilt behavior and sustained frame rate have not been measured on a phone.
+
+Road recovery preserves progress and adds five seconds. Physics-version record/ghost keys advance to 22.mobile.1 so the changed model does not compare old runs with new runs. Existing save balances, car choices and upgrade data are retained. The fictional Lovo class remains stock with no power upgrades.

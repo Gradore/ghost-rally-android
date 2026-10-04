@@ -14,6 +14,10 @@ var mobile_steering=preload("res://scripts/input/mobile_steering.gd").new()
 var touch_anchor := {}
 var engine_layers: Array[AudioStreamPlayer]=[]
 var tilt_zero := 0.0
+var built_world_key := ""
+var showroom: Node3D
+var settings_return := "home"
+var settings_tab := 0
 var active_car := 0
 var world: TrackWorld
 var car: RallyCar
@@ -86,6 +90,7 @@ func _ready() -> void:
 	load_save()
 	active_track = int(save.selected_track)
 	active_car = int(save.selected_car)
+	tilt_zero=float(save.get("tilt_neutral",0.0))
 	build_scene()
 	build_audio()
 	build_ui()
@@ -181,8 +186,8 @@ func build_scene() -> void:
 	sun.light_energy = 1.18
 	sun.shadow_enabled = true
 	sun.shadow_opacity=0.78
-	sun.directional_shadow_max_distance = 120
-	sun.directional_shadow_mode=DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
+	sun.directional_shadow_max_distance = 70
+	sun.directional_shadow_mode=DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	sun.directional_shadow_blend_splits=true
 	add_child(sun)
 	camera = Camera3D.new()
@@ -241,6 +246,10 @@ func _process(delta: float) -> void:
 		audio_playback.push_frame(Vector2(sample,sample) if state=="race" else Vector2.ZERO)
 
 func build_world() -> void:
+	sun.light_energy=1.18
+	built_world_key="%d:%d:%d" % [active_track,active_wp,active_car]
+	if is_instance_valid(showroom): showroom.visible=false
+	apply_graphics()
 	if is_instance_valid(world):
 		remove_child(world)
 		world.queue_free()
@@ -328,36 +337,63 @@ func _resize_ui() -> void:
 		ui.scale=Vector2(viewport_size.x/1280.0,viewport_size.y/720.0)
 
 func clear_ui() -> void:
-	for child in ui.get_children(): child.queue_free()
+	for child in ui.get_children():
+		if child is CanvasItem: child.hide()
+		child.queue_free()
+
+func ensure_race_world() -> void:
+	sun.light_energy=1.18
+	var key := "%d:%d:%d" % [active_track,active_wp,active_car]
+	if not is_instance_valid(world) or not is_instance_valid(car) or built_world_key!=key:
+		build_world()
+	else:
+		world.show();car.show()
+		if is_instance_valid(showroom):showroom.hide()
+		car.position=world.center_at(4)+Vector3.UP*0.07
+		yaw=world.heading_at(4);car.rotation.y=yaw
+		velocity=Vector2.ZERO;dynamics.reset();mobile_steering.reset()
+
+func display_showroom() -> void:
+	if is_instance_valid(world): world.hide()
+	if is_instance_valid(car): car.hide()
+	if is_instance_valid(ghost_car): ghost_car.hide()
+	if not is_instance_valid(showroom):
+		showroom=preload("res://scripts/garage_world.gd").new()
+		add_child(showroom)
+	showroom.show()
+	sun.light_energy=0.42
+	showroom.select_car(Data.CARS[active_car],int(save.livery[active_car]))
+	camera.position=Vector3(5.6,2.35,5.6)
+	camera.look_at(Vector3(1.25,0.85,0),Vector3.UP)
+	camera.fov=48
+	apply_graphics()
+
+func apply_graphics() -> void:
+	var economy: bool=save.get("graphics","balanced")=="economy"
+	var in_showroom := is_instance_valid(showroom) and showroom.visible
+	get_viewport().scaling_3d_scale=1.0 if in_showroom else 0.65 if economy else 0.80
+	get_viewport().msaa_3d=Viewport.MSAA_2X if in_showroom else Viewport.MSAA_DISABLED
+	sun.shadow_enabled=not economy
+	if OS.has_feature("android"): dynamics.set_tick_hz(240)
 
 func show_home() -> void:
 	state="home"
-	touch.clear()
+	touch.clear();touch_anchor.clear()
 	event_daily=false
 	clear_ui()
-	build_world()
-	var veil := ColorRect.new()
-	veil.color=Color(0.015,0.05,0.07,0.43)
-	veil.set_anchors_preset(Control.PRESET_FULL_RECT)
-	veil.mouse_filter=Control.MOUSE_FILTER_IGNORE
-	ui.add_child(veil)
-	_label(ui,"GHOST",76,Color("eff7ee"),Vector2(68,45),Vector2(570,86),true)
-	_label(ui,"RALLY",76,Color("f6c64e"),Vector2(68,113),Vector2(570,86),true)
-	_label(ui,"CHASE THE LINE. BEAT THE TIME.",19,Color("b8d3d1"),Vector2(73,207),Vector2(500,30))
+	display_showroom()
+	_label(ui,"GHOST RALLY",43,Color.WHITE,Vector2(38,22),Vector2(650,58),true)
+	_label(ui,"MEINE GARAGE   /   %d RC   /   LEVEL %d" % [int(save.rc),1+int(save.xp)/400],18,Color("f4c64f"),Vector2(42,80),Vector2(680,30))
 	var daily: Dictionary=Data.TRACKS[Data.today_track()]
-	var card := _card(ui,Vector2(64,278),Vector2(520,257))
-	_label(card,"TODAY'S RALLY  /  DAILY STAGE",15,Color("f4c64f"),Vector2(26,20),Vector2(470,28))
-	_label(card,daily.name,33,Color.WHITE,Vector2(26,61),Vector2(470,48),true)
-	_label(card,"%s   •   %s   •   %.1f KM" % [daily.place,daily.surface,float(daily.length)/1000.0],16,Color("aac7c3"),Vector2(28,116),Vector2(470,30))
-	_button(card,"RACE THE DAILY  →",Vector2(26,174),Vector2(468,58),func(): active_track=Data.today_track(); event_daily=true; show_pre_race(),true)
-	_button(ui,"STRECKENKARTE",Vector2(64,557),Vector2(245,63),func(): show_tracks(),true)
-	_button(ui,"GARAGE",Vector2(326,557),Vector2(258,63),func(): show_garage())
-	var side := _card(ui,Vector2(852,71),Vector2(350,193),false)
-	_label(side,"DRIVER STATUS",17,Color("f6c64f"),Vector2(23,17),Vector2(300,27))
-	_label(side,"LEVEL %d" % [1+int(save.xp)/400],33,Color.WHITE,Vector2(23,53),Vector2(300,47),true)
-	_label(side,"%d RACES    •    %d XP" % [int(save.races),int(save.xp)],17,Color("bfceca"),Vector2(25,111),Vector2(300,28))
-	_label(ui,"NO ADS  •  PURE RACING",13,Color("aac5c0"),Vector2(962,653),Vector2(280,25))
-	_button(ui,"SETTINGS",Vector2(1031,19),Vector2(171,43),func(): show_settings())
+	var card := _card(ui,Vector2(912,147),Vector2(326,335))
+	_label(card,"RALLYE DES TAGES",17,Color("f4c64f"),Vector2(22,19),Vector2(282,30),true)
+	_label(card,daily.name,30,Color.WHITE,Vector2(22,61),Vector2(282,90),true)
+	_label(card,"%s  ·  %.1f KM" % [daily.place,float(daily.length)/1000],18,Color("aac7c3"),Vector2(22,172),Vector2(282,48))
+	_button(card,"TAGESRALLYE  →",Vector2(22,251),Vector2(282,59),func(): active_track=Data.today_track(); event_daily=true; show_pre_race(),true)
+	_label(ui,Data.CARS[active_car].name,33,Color.WHITE,Vector2(44,532),Vector2(700,48),true)
+	_button(ui,"STRECKENKARTE",Vector2(40,620),Vector2(378,66),func(): show_tracks(),true)
+	_button(ui,"GARAGE",Vector2(450,620),Vector2(378,66),func(): show_garage())
+	_button(ui,"EINSTELLUNGEN",Vector2(860,620),Vector2(378,66),func(): settings_return="home"; show_settings())
 
 func show_tracks() -> void:
 	state="tracks"
@@ -409,53 +445,45 @@ func _render_map_side(index: int) -> void:
 			_button(map_side,"MÜRITZ / ROSTOCK WECHSELN",Vector2(27,379),Vector2(486,34),func(): map_control.select_route(7 if active_track==16 else 16))
 		_button(map_side,"ANDERES BUNDESLAND",Vector2(27,497),Vector2(486,42),func(): map_control.reset_view(); _render_map_side(-1))
 
+func select_garage_car(direction: int) -> void:
+	active_car=posmod(active_car+direction,Data.CARS.size())
+	save.selected_car=active_car;write_save();show_garage()
+
 func show_garage() -> void:
-	state="garage"
-	clear_ui()
-	build_world()
-	car.position=world.center_at(4)+Vector3(0,0.06,0)
-	var veil := ColorRect.new(); veil.color=Color(0.012,0.052,0.069,0.43); veil.set_anchors_preset(Control.PRESET_FULL_RECT); veil.mouse_filter=Control.MOUSE_FILTER_IGNORE; ui.add_child(veil)
-	_label(ui,"THE GARAGE",45,Color.WHITE,Vector2(43,20),Vector2(700,62),true)
-	_label(ui,"12 AUTOS   /   3 FWD   /   4 RWD   /   5 AWD",16,Color("f4c64f"),Vector2(46,80),Vector2(600,28))
+	state="garage";clear_ui();display_showroom()
+	_label(ui,"GARAGE",43,Color.WHITE,Vector2(125,25),Vector2(550,58),true)
+	_label(ui,"FAHRZEUG %02d / %02d" % [active_car+1,Data.CARS.size()],19,Color("f4c64f"),Vector2(128,84),Vector2(500,30))
+	_button(ui,"◀",Vector2(40,32),Vector2(68,68),func(): select_garage_car(-1))
+	_button(ui,"▶",Vector2(732,32),Vector2(68,68),func(): select_garage_car(1))
 	var current: Dictionary=Data.CARS[active_car]
-	var card := _card(ui,Vector2(726,105),Vector2(510,522))
-	_label(card,"%s  /  CLASS %s     •     %d RC" % [current.drive,current["class"],int(save.rc)],16,Color("f4c64f"),Vector2(25,17),Vector2(470,30),true)
-	_label(card,current.name,34,Color.WHITE,Vector2(25,49),Vector2(468,51),true)
-	_label(card,"%d PS     •     %d KM/H     •     %s" % [int(current.power),int(current.top*3.6),current.drive],16,Color("a9c7c2"),Vector2(26,101),Vector2(468,32))
-	var drive_info := "FWD = FRONTANTRIEB: stabil, schiebt unter Gas nach außen." if current.drive=="FWD" else ("RWD = HECKANTRIEB: drehfreudig, Gas kann das Heck lösen." if current.drive=="RWD" else "AWD = ALLRADANTRIEB: viel Traktion, besonders auf Schotter.")
-	_label(card,drive_info,15,Color("d5e3d5"),Vector2(26,129),Vector2(465,29))
-	_label(card,"RC UPGRADES  /  MAX LEVEL 3",16,Color("f4c64f"),Vector2(26,160),Vector2(458,27))
+	var card := _card(ui,Vector2(849,32),Vector2(389,570))
+	_label(card,"%s  /  KLASSE %s  /  %d RC" % [current.drive,current["class"],int(save.rc)],16,Color("f4c64f"),Vector2(22,18),Vector2(346,28),true)
+	_label(card,current.name,34,Color.WHITE,Vector2(22,60),Vector2(346,65),true)
+	_label(card,"%d PS   ·   %d KM/H" % [int(current.power),roundi(current.top*3.6)],22,Color.WHITE,Vector2(22,140),Vector2(346,32),true)
+	_label(card,"0–100 KM/H: 10,5 S  ·  SERIE" if current.get("voc",false) else "FRONTANTRIEB" if current.drive=="FWD" else "HECKANTRIEB" if current.drive=="RWD" else "ALLRADANTRIEB",18,Color("aac7c3"),Vector2(22,180),Vector2(346,35))
 	var levels: Dictionary=save.upgrades[active_car]
 	for j in 3:
-		var upgrade_key: String=["engine","handling","brakes"][j]
-		var label: String=["ENGINE","HANDLING","BRAKES"][j]
-		var level: int=int(levels[upgrade_key])
-		var yy := 194+j*55
-		_label(card,"%s    LV %d/3" % [label,level],17,Color.WHITE,Vector2(27,yy+8),Vector2(262,28),true)
-		var cost: int=100*(level+1)
-		_button(card,"MAX" if level>=3 else "%d RC  +" % cost,Vector2(327,yy),Vector2(156,42),func(k=upgrade_key): buy_upgrade(k),level<3 and int(save.rc)>=cost)
-	_label(card,"FREIES SETUP",16,Color("f4c64f"),Vector2(26,367),Vector2(433,27))
-	var car_setup: Dictionary=save.setup[active_car]
+		var key: String=["engine","handling","brakes"][j]
+		var level: int=int(levels[key]);var cost: int=100*(level+1)
+		_label(card,["MOTOR","FAHRWERK","BREMSEN"][j]+"  %d/3" % level,17,Color.WHITE,Vector2(22,244+j*55),Vector2(195,28),true)
+		if current.get("voc",false):
+			_label(card,"SERIENKLASSE",15,Color("f4c64f"),Vector2(226,244+j*55),Vector2(147,28))
+		else:_button(card,"MAX" if level>=3 else "%d RC +" % cost,Vector2(225,236+j*55),Vector2(142,43),func(k=key): buy_upgrade(k),level<3 and int(save.rc)>=cost)
 	for j in 2:
 		var key: String=["gearing","suspension"][j]
-		var title: String=["GEARING","SUSPENSION"][j]
-		var yy := 396+j*50
-		_label(card,title,16,Color.WHITE,Vector2(27,yy+8),Vector2(215,28))
-		_button(card,"−",Vector2(280,yy),Vector2(43,39),func(k=key): change_setup(k,-0.25))
-		_label(card,"%+.2f" % float(car_setup[key]),16,Color("f4c64f"),Vector2(333,yy+8),Vector2(72,27))
-		_button(card,"+",Vector2(429,yy),Vector2(43,39),func(k=key): change_setup(k,0.25))
-	for i in Data.CARS.size():
-		var c: Dictionary=Data.CARS[i]
-		var col := i%2
-		var row := int(i/2)
-		_button(ui,"%s  ·  %s" % [c.drive,c.name],Vector2(43+col*330,135+row*95),Vector2(315,68),func(idx=i): active_car=idx; save.selected_car=idx; write_save(); show_garage(),i==active_car)
-	_button(ui,"← BACK",Vector2(43,644),Vector2(177,50),func(): show_home())
-	_button(ui,"RACE WITH THIS CAR →",Vector2(726,644),Vector2(510,50),func(): show_pre_race(),true)
+		var yy := 422+j*54
+		_label(card,["ÜBERSETZUNG","FEDERUNG"][j],16,Color.WHITE,Vector2(22,yy+8),Vector2(165,28))
+		_button(card,"−",Vector2(189,yy),Vector2(44,42),func(k=key): change_setup(k,-0.25))
+		_label(card,"%+.2f" % float(save.setup[active_car][key]),17,Color("f4c64f"),Vector2(244,yy+8),Vector2(66,28))
+		_button(card,"+",Vector2(323,yy),Vector2(44,42),func(k=key): change_setup(k,0.25))
+	_label(ui,current.name,38,Color.WHITE,Vector2(44,533),Vector2(760,55),true)
+	_button(ui,"← HAUPTMENÜ",Vector2(40,627),Vector2(240,59),func(): show_home())
+	_button(ui,"MIT DIESEM AUTO FAHREN  →",Vector2(849,627),Vector2(389,59),func(): show_pre_race(),true)
 
 func show_pre_race() -> void:
 	state="prerace"
 	clear_ui()
-	build_world()
+	ensure_race_world()
 	car.position=world.center_at(7.0)+Vector3(0,0.07,0)
 	var veil := ColorRect.new()
 	veil.color=Color(0.012,0.048,0.064,0.40)
@@ -519,26 +547,54 @@ func change_setup(key: String, amount: float) -> void:
 	write_save()
 	show_garage()
 
+func settings_adjust(key: String, amount: float, low: float, high: float) -> void:
+	save[key]=clampf(float(save.get(key,low))+amount,low,high);write_save();show_settings()
+
+func setting_row(card: Control, title: String, key: String, yy: float, amount: float, low: float, high: float) -> void:
+	_label(card,title,20,Color("b8cfcb"),Vector2(32,yy+8),Vector2(335,32))
+	_button(card,"−",Vector2(383,yy),Vector2(55,45),func(): settings_adjust(key,-amount,low,high))
+	_label(card,"%.1f" % float(save.get(key,low)),20,Color("f4c64f"),Vector2(458,yy+8),Vector2(70,30))
+	_button(card,"+",Vector2(527,yy),Vector2(55,45),func(): settings_adjust(key,amount,low,high))
+
+func calibrate_tilt() -> void:
+	tilt_zero=Input.get_gravity().x
+	if Input.get_gravity().length_squared()<1.0:tilt_zero=Input.get_accelerometer().x
+	save.tilt_neutral=tilt_zero;write_save()
+
+func close_settings() -> void:
+	if settings_return=="pause":show_pause()
+	else:show_home()
+
 func show_settings() -> void:
-	state="settings"
-	clear_ui()
-	var veil := ColorRect.new(); veil.color=Color(0.015,0.05,0.07,0.75); veil.set_anchors_preset(Control.PRESET_FULL_RECT); ui.add_child(veil)
-	var card := _card(ui,Vector2(327,95),Vector2(626,525))
-	_label(card,"DRIVING SETTINGS",36,Color.WHITE,Vector2(32,28),Vector2(560,50),true)
-	_label(card,"GAS AUTOMATISCH",20,Color("b8cfcb"),Vector2(32,110),Vector2(390,32))
-	_button(card,"ON" if save.casual else "OFF",Vector2(440,105),Vector2(142,45),func(): save.casual=not save.casual; write_save(); show_settings(),save.casual)
-	_label(card,"STEERING SENSITIVITY",20,Color("b8cfcb"),Vector2(32,184),Vector2(390,32))
-	_button(card,"−",Vector2(383,179),Vector2(55,45),func(): save.sensitivity=maxf(0.5,float(save.sensitivity)-0.1); write_save(); show_settings())
-	_label(card,"%.1f" % float(save.sensitivity),20,Color("f4c64f"),Vector2(458,188),Vector2(55,30))
-	_button(card,"+",Vector2(527,179),Vector2(55,45),func(): save.sensitivity=minf(1.5,float(save.sensitivity)+0.1); write_save(); show_settings())
-	_label(card,"PERSONAL BEST GHOST",20,Color("b8cfcb"),Vector2(32,253),Vector2(390,32))
-	_button(card,"ON" if selected_ghost else "OFF",Vector2(440,249),Vector2(142,45),func(): selected_ghost=not selected_ghost; show_settings(),selected_ghost)
+	state="settings";clear_ui()
+	var veil := ColorRect.new();veil.color=Color(0.015,0.025,0.035,0.78);veil.set_anchors_preset(Control.PRESET_FULL_RECT);ui.add_child(veil)
+	var card := _card(ui,Vector2(327,45),Vector2(626,630))
+	_label(card,"EINSTELLUNGEN",36,Color.WHITE,Vector2(32,22),Vector2(560,50),true)
 	for i in 3:
-		var mode: String=["wheel","tilt","buttons"][i]
-		_button(card,["LENKRAD ↔","NEIGEN","TASTEN"][i],Vector2(32+i*185,326),Vector2(175,40),func():save.control_mode=mode;tilt_zero=Input.get_accelerometer().x;write_save();show_settings(),save.get("control_mode","wheel")==mode)
-	_label(card,"KEYBOARD: ← →  /  W S  /  SPACE",18,Color("8ea9a6"),Vector2(32,374),Vector2(570,30))
-	_button(card,"KARTENDATEN UND LIZENZEN",Vector2(32,406),Vector2(550,42),func(): show_credits())
-	_button(card,"DONE",Vector2(32,457),Vector2(550,49),func(): show_home(),true)
+		_button(card,["FAHREN","GRAFIK","KAMERA"][i],Vector2(32+i*185,88),Vector2(175,45),func(tab=i):settings_tab=tab;show_settings(),settings_tab==i)
+	if settings_tab==0:
+		for i in 3:
+			var mode: String=["wheel","tilt","buttons"][i]
+			_button(card,["DAUMEN ↔","NEIGEN","TASTEN"][i],Vector2(32+i*185,165),Vector2(175,45),func():save.control_mode=mode;tilt_zero=Input.get_gravity().x;write_save();show_settings(),save.get("control_mode","wheel")==mode)
+		setting_row(card,"LENKEMPFINDLICHKEIT","sensitivity",234,0.1,0.5,1.5)
+		_label(card,"GAS AUTOMATISCH",20,Color("b8cfcb"),Vector2(32,309),Vector2(360,32))
+		_button(card,"AN" if save.casual else "AUS",Vector2(440,301),Vector2(142,45),func():save.casual=not save.casual;write_save();show_settings(),save.casual)
+		_button(card,"NEIGUNG: MITTE KALIBRIEREN",Vector2(32,370),Vector2(550,45),func():calibrate_tilt())
+		_button(card,"NEIGUNG INVERTIEREN: "+("AN" if save.get("tilt_invert",false) else "AUS"),Vector2(32,432),Vector2(550,45),func():save.tilt_invert=not save.get("tilt_invert",false);write_save();show_settings())
+		_label(card,"Daumen nach links = links. Handy im Querformat neigen.",17,Color("aac7c3"),Vector2(32,498),Vector2(565,40))
+	elif settings_tab==1:
+		_label(card,"DARSTELLUNG",22,Color.WHITE,Vector2(32,170),Vector2(550,35),true)
+		for i in 2:
+			var mode: String=["economy","balanced"][i]
+			_button(card,["FLÜSSIG","AUSGEWOGEN"][i],Vector2(32+i*280,228),Vector2(270,60),func():save.graphics=mode;write_save();apply_graphics();show_settings(),save.get("graphics","balanced")==mode)
+		_label(card,"FLÜSSIG: 65 % 3D-Auflösung, ohne Echtzeitschatten.\nAUSGEWOGEN: 80 % 3D-Auflösung, kurze Schatten.\nMenüs bleiben in voller Bildschirmauflösung.",20,Color("aac7c3"),Vector2(32,330),Vector2(550,130))
+	else:
+		setting_row(card,"VERFOLGUNG: ABSTAND (M)","camera_distance",170,0.5,4.0,12.0)
+		setting_row(card,"VERFOLGUNG: HÖHE (M)","camera_height",242,0.2,1.5,5.0)
+		setting_row(card,"SICHTFELD (GRAD)","camera_fov",314,5.0,50.0,85.0)
+		_label(card,"Im Rennen zwischen Cockpit und Verfolgung wechseln.\nEinstellungen werden gespeichert.",20,Color("aac7c3"),Vector2(32,416),Vector2(550,85))
+	_button(card,"KARTENDATEN UND LIZENZEN",Vector2(32,541),Vector2(270,45),func():show_credits())
+	_button(card,"FERTIG",Vector2(322,541),Vector2(260,45),func():close_settings(),true)
 
 func show_credits() -> void:
 	state="credits"
@@ -562,7 +618,7 @@ func start_race() -> void:
 	touch.clear()
 	touch_anchor.clear()
 	clear_ui()
-	build_world()
+	ensure_race_world()
 	load_ghost()
 	ghost_car.visible = replay_frames.size()>1
 	if ghost_car.visible: ghost_car.position=Vector3(float(replay_frames[0][1]),0.08,float(replay_frames[0][2]))
@@ -651,8 +707,9 @@ func build_race_ui() -> void:
 	elif save.get("control_mode","wheel")=="wheel":
 		var wheel_control=preload("res://scripts/input/steering_wheel.gd").new();wheel_control.game=self
 		wheel_control.position=Vector2(81,525);wheel_control.size=Vector2(198,168);control_panel.add_child(wheel_control)
+		var hint := _label(control_panel,"DAUMEN ↔",16,Color("eaf2e8"),Vector2(86,681),Vector2(185,27),true);hint.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	else:control_hint("NEIGEN",Vector2(38,544),Vector2(294,133),Color("eaf2e8"))
-	control_hint("BRAKE",Vector2(945,544),Vector2(139,133),Color("ec9486"))
+	control_hint("BREMSE",Vector2(945,544),Vector2(139,133),Color("ec9486"))
 	control_hint("GAS",Vector2(1096,544),Vector2(140,133),Color("f4c64f"))
 	for panel in ui.get_children():
 		if panel is Panel: panel.add_theme_stylebox_override("panel",_panel(Color(0.025,0.055,0.065,0.78),Color(1,1,1,0.35),10))
@@ -668,18 +725,28 @@ func control_hint(title: String, pos: Vector2, dimensions: Vector2, color: Color
 	l.mouse_filter=Control.MOUSE_FILTER_IGNORE
 
 func show_pause() -> void:
-	if state != "race": return
+	if state not in ["race","pause","settings"]: return
 	state="pause"
 	touch.clear()
 	touch_anchor.clear()
 	steer=0;throttle=0;brake=0
 	clear_ui()
 	var veil := ColorRect.new(); veil.color=Color(0.015,0.05,0.07,0.77); veil.set_anchors_preset(Control.PRESET_FULL_RECT); ui.add_child(veil)
-	var card := _card(ui,Vector2(427,164),Vector2(426,399))
-	_label(card,"PAUSED",49,Color.WHITE,Vector2(29,31),Vector2(370,67),true)
-	_button(card,"CONTINUE",Vector2(29,138),Vector2(368,56),func(): state="race"; build_race_ui(),true)
-	_button(card,"RESTART",Vector2(29,218),Vector2(368,56),func(): start_race())
-	_button(card,"HAUPTMENÜ",Vector2(29,298),Vector2(368,56),func(): show_home())
+	var card := _card(ui,Vector2(427,83),Vector2(426,554))
+	_label(card,"PAUSE",49,Color.WHITE,Vector2(29,31),Vector2(370,67),true)
+	_button(card,"WEITER",Vector2(29,138),Vector2(368,56),func(): state="race"; build_race_ui(),true)
+	_button(card,"NEUSTART",Vector2(29,218),Vector2(368,56),func(): start_race())
+	_button(card,"ZURÜCK AUF DIE STRECKE",Vector2(29,288),Vector2(368,56),func(): reset_to_road())
+	_button(card,"EINSTELLUNGEN",Vector2(29,358),Vector2(368,56),func():settings_return="pause";show_settings())
+	_button(card,"HAUPTMENÜ",Vector2(29,428),Vector2(368,56),func(): show_home())
+
+func reset_to_road() -> void:
+	var at := clampf(race_progress,0,float(world.track.length)-5.0)
+	car.position=world.center_at(at)+Vector3.UP*0.07
+	yaw=world.heading_at(at);car.rotation.y=yaw
+	velocity=Vector2.ZERO;speed=0;reverse_engaged=false
+	dynamics.reset();mobile_steering.reset();touch.clear();touch_anchor.clear()
+	race_time+=5.0;state="race";build_race_ui()
 
 func toggle_camera() -> void:
 	camera_mode=1-camera_mode
@@ -753,18 +820,22 @@ func get_controls() -> void:
 		if anchor.x<width*0.27:
 			if save.get("control_mode","wheel")=="buttons":steer += -1 if pos.x<width*0.142 else 1
 			else:
-				var c := Vector2(width*0.142,height*0.847)
-				if anchor.distance_to(c)>width*0.025:
-					steer+=clampf(wrapf((pos-c).angle()-(anchor-c).angle(),-PI,PI)/1.15,-1,1)
-				else:steer+=clampf((pos.x-anchor.x)/(width*0.085),-1,1)
+				steer+=clampf((pos.x-anchor.x)/(width*0.085),-1,1)
 		elif anchor.x>width*0.73:
 			if anchor.x>width*0.855: throttle=1
 			else: brake=1
 	if save.get("control_mode","wheel")=="tilt":
-		var tilt := Input.get_accelerometer().x
-		steer=clampf((tilt-tilt_zero)/4.0,-1,1)
+		var tilt := Input.get_gravity().x
+		if Input.get_gravity().length_squared()<1.0: tilt=Input.get_accelerometer().x
+		steer=tilt_steering(tilt)
 	steer=clampf(steer,-1,1)*float(save.sensitivity)
 	if save.casual and brake<0.5: throttle=1
+
+func tilt_steering(sensor_x: float) -> float:
+	var value := (sensor_x-tilt_zero)/4.0
+	if save.get("tilt_invert",false): value=-value
+	var deadzone := 0.06
+	return signf(value)*clampf((absf(value)-deadzone)/(1.0-deadzone),0,1)
 
 func _physics_process(delta: float) -> void:
 	if state=="race":
@@ -795,7 +866,7 @@ func _physics_process(delta: float) -> void:
 				minimap.queue_redraw()
 			if is_instance_valid(minimap_label): minimap_label.text="%.1f / %.1f KM" % [race_progress/1000.0,float(world.track.length)/1000.0]
 			if race_time>900.0: show_pause()
-	if is_instance_valid(car):
+	if is_instance_valid(car) and not (is_instance_valid(showroom) and showroom.visible):
 		var in_menu := state in ["home","garage","settings","tracks","prerace"]
 		var back := Vector3(sin(car.rotation.y),0,cos(car.rotation.y))
 		if is_instance_valid(car.body): car.body.visible=not (state=="race" and camera_mode==1)
@@ -807,16 +878,21 @@ func _physics_process(delta: float) -> void:
 			camera.fov=lerpf(camera.fov,74.0+clampf(speed*0.07,0.0,6.0),clampf(delta*8.0,0,1))
 		else:
 			var look_ahead := (2.0 if state=="garage" else 0.0) if in_menu else 12.0+speed*0.36
-			var desired := car.position+back*(8.0 if state=="prerace" else (12.0 if in_menu else 7.0+speed*0.030))+Vector3(0,4.8 if state=="prerace" else (11 if in_menu else 2.5+speed*0.010),0)
+			var desired := car.position+back*(8.0 if state=="prerace" else (12.0 if in_menu else float(save.get("camera_distance",7.0))+speed*0.030))+Vector3(0,4.8 if state=="prerace" else (11 if in_menu else float(save.get("camera_height",2.5))+speed*0.010),0)
 			# Keep the chase camera above hills and roadside objects.
 			desired.y=maxf(desired.y,world.ground_height(desired)+1.0)
+			if not in_menu:
+				var focus := car.position+Vector3.UP*1.25
+				var ray := PhysicsRayQueryParameters3D.create(focus,desired,1,[car.get_rid()])
+				var obstruction := get_world_3d().direct_space_state.intersect_ray(ray)
+				if not obstruction.is_empty():desired=obstruction.position+obstruction.normal*0.35
 			camera.position=camera.position.lerp(desired,1-exp(-delta*6.2))
 			camera.position.y=maxf(camera.position.y,world.ground_height(camera.position)+0.65)
 			var side_focus := 3.0 if state=="prerace" else (1.2 if state=="garage" else (-3.0 if in_menu else 0.0))
 			var right := Vector3(cos(car.rotation.y),0,-sin(car.rotation.y))
 			camera_target=camera_target.lerp(car.position+right*side_focus-back*look_ahead,clampf(delta*7.0,0,1))
 			camera.look_at(camera_target,Vector3.UP)
-			camera.fov=lerpf(camera.fov,65.0+clampf(speed*0.20,0.0,14.0) if state=="race" else 58.0,clampf(delta*4.0,0,1))
+			camera.fov=lerpf(camera.fov,float(save.get("camera_fov",65.0))+clampf(speed*0.20,0.0,14.0) if state=="race" else 58.0,clampf(delta*4.0,0,1))
 		if state in ["garage","prerace"]: car.rotation.y+=delta*0.45
 
 func update_vehicle(delta: float) -> void:

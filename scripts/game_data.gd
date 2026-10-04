@@ -1,7 +1,7 @@
 extends RefCounted
 class_name GameData
 
-const PHYSICS_VERSION := "14.mobile.1"
+const PHYSICS_VERSION := "22.mobile.1"
 const CARS := [
 	{"id":"kite", "name":"KITE SPRINT", "class":"C", "drive":"FWD", "color":Color("f2bd45"), "mass":1080.0, "power":190.0, "grip":14.0, "rear_grip":12.5, "top":61.0, "steer":3.15},
 	{"id":"mira", "name":"MIRA TURBO", "class":"B", "drive":"FWD", "color":Color("ef8f69"), "mass":1160.0, "power":235.0, "grip":13.5, "rear_grip":11.8, "top":67.0, "steer":3.0},
@@ -13,7 +13,7 @@ const CARS := [
 	{"id":"talon", "name":"TALON EVO", "class":"A", "drive":"AWD", "color":Color("6aa9e3"), "mass":1390.0, "power":335.0, "grip":16.0, "rear_grip":15.0, "top":77.0, "steer":2.75},
 	{"id":"rover", "name":"ROVER X", "class":"A", "drive":"AWD", "color":Color("d3bc8c"), "mass":1450.0, "power":370.0, "grip":17.0, "rear_grip":16.2, "top":75.0, "steer":2.65},
 	{"id":"apex", "name":"APEX WRC", "class":"S", "drive":"AWD", "color":Color("f2f2e4"), "mass":1320.0, "power":430.0, "grip":18.0, "rear_grip":17.0, "top":83.0, "steer":2.8},
-	{"id":"lovo940voc", "name":"Lovo 940 VOC", "class":"VOC", "drive":"RWD", "color":Color("214c36"), "mass":1350.0, "power":116.0, "grip":12.0, "rear_grip":11.8, "top":49.0, "steer":2.8, "wheelbase":2.77, "wheel_radius":0.317, "front_weight":0.53, "final_drive":4.1, "voc":true},
+	{"id":"lovo940voc", "name":"Lovo 940 VOC", "class":"VOC", "drive":"RWD", "color":Color("214c36"), "mass":1350.0, "power":131.0, "grip":12.0, "rear_grip":11.8, "top":185.0/3.6, "steer":2.8, "wheelbase":2.77, "wheel_radius":0.317, "front_weight":0.53, "final_drive":4.1, "voc":true},
 	{"id":"kestrel_s1_evo", "name":"KESTREL S1 EVO", "class":"B", "drive":"AWD", "color":Color("eeeadd"), "mass":1090.0, "power":476.0, "grip":16.0, "rear_grip":15.0, "top":77.0, "steer":2.8, "wheelbase":2.224, "wheel_radius":0.32, "front_weight":0.52, "final_drive":4.2, "fictional":true}
 ]
 
@@ -55,5 +55,5 @@ static func default_save() -> Dictionary:
 		upgrades.append({"engine":0,"handling":0,"brakes":0})
 		livery.append(0)
 		mastery.append(0)
-	return {"races":0, "xp":0, "rc":300, "selected_car":0, "selected_track":0, "best":{}, "best_sectors":{}, "mastery":mastery, "setup":setup, "upgrades":upgrades, "livery":livery, "casual":false, "sensitivity":1.0, "control_mode":"wheel"}
+	return {"races":0, "xp":0, "rc":300, "selected_car":0, "selected_track":0, "best":{}, "best_sectors":{}, "mastery":mastery, "setup":setup, "upgrades":upgrades, "livery":livery, "casual":false, "sensitivity":1.0, "control_mode":"wheel", "graphics":"balanced", "tilt_invert":false, "camera_distance":7.0, "camera_height":2.5, "camera_fov":65.0}
 

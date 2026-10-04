@@ -50,7 +50,7 @@ func _building(data: Dictionary) -> void:
 	var levels := maxi(1,int(h/3.0))
 	var garage: bool=data.kind in ["garage","garages","shed","farm_auxiliary"]
 	var collision := SurfaceTool.new();collision.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var near_road := world._nearest(center).y<2500.0
+	var near_road := true # Every mapped footprint blocks the car, including large/set-back buildings.
 	for i in p.size():
 		var a := Vector3(p[i].x,0,p[i].y);var b := Vector3(p[(i+1)%p.size()].x,0,p[(i+1)%p.size()].y)
 		var edge := b-a
@@ -70,7 +70,7 @@ func _building(data: Dictionary) -> void:
 				# Thin mullion and sill in the same facade batch.
 				_quad(wall,at-edge.normalized()*0.035-Vector3.UP*0.74+n*0.012,at-edge.normalized()*0.035+Vector3.UP*0.74+n*0.012,at+edge.normalized()*0.035-Vector3.UP*0.74+n*0.012,at+edge.normalized()*0.035+Vector3.UP*0.74+n*0.012,n,Color("ebe7de"))
 	if near_road:
-		var hit := StaticBody3D.new();var shape := CollisionShape3D.new();shape.shape=collision.commit().create_trimesh_shape();hit.add_child(shape);add_child(hit)
+		var hit := StaticBody3D.new();var shape := CollisionShape3D.new();shape.shape=collision.commit().create_trimesh_shape();shape.shape.backface_collision=true;hit.add_child(shape);add_child(hit)
 	var roof_color := Color("9b5540") if data.roof in ["hipped","gabled"] else Color("626b68")
 	if data.roof in ["hipped","gabled"] and p.size()==4:
 		if p[0].distance_to(p[1])<p[1].distance_to(p[2]):p=PackedVector2Array([p[1],p[2],p[3],p[0]])
@@ -181,8 +181,8 @@ void fragment(){
 				if not Geometry2D.is_point_in_polygon(Vector2(at.x,at.z),p):continue
 				if world._nearest(at).y>90000 or not world.scenery_clear(at,3):continue
 				trees.append(Transform3D(Basis().rotated(Vector3.UP,rng.randf()*TAU).scaled(Vector3.ONE*rng.randf_range(1.05,1.7)),at));world.add_tree_collider(at,2.5)
-	preload("res://scripts/render/forest.gd").plant_variants(self,trees,"mv_broadleaf",145,0,true,false)
-	preload("res://scripts/render/forest.gd").plant_variants(self,trees,"mv_broadleaf_far",500,137,true,true)
+	preload("res://scripts/render/forest.gd").plant_variants(self,trees,"mv_broadleaf",75,0,true,false)
+	preload("res://scripts/render/forest.gd").plant_variants(self,trees,"mv_broadleaf_far",320,67,true,true)
 
 func _flush(batch: Dictionary, distance: float) -> void:
 	var st: SurfaceTool=batch.st

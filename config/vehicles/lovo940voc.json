@@ -1,7 +1,7 @@
 {
   "id": "lovo940voc",
   "_assumption": true,
-  "notes": "Provisional stock B230F-like tune. VOC conformity NOT certified; requires exact engine/year and official technical regulation verification.",
+  "notes": "User-specified stock performance targets. Physical calibration is provisional; VOC conformity is not certified.",
   "mass_kg": 1350,
   "wheelbase_m": 2.77,
   "track_m": 1.46,
@@ -23,27 +23,27 @@
   "torque_curve_nm": [
     [
       900,
-      110
+      125
     ],
     [
       2000,
-      165
+      178
     ],
     [
       2750,
-      185
+      194
     ],
     [
       4000,
-      180
+      195
     ],
     [
       5400,
-      151
+      170.4
     ],
     [
       6200,
-      120
+      135
     ]
   ],
   "turbo": false,
@@ -70,5 +70,10 @@
     "tyre_damper_nspm": 450,
     "antiroll_npm": 10000,
     "ride_height_m": 0.55
-  }
+  },
+  "target_power_ps": 131,
+  "target_top_speed_kmh": 185,
+  "target_0_100_s": 10.5,
+  "drag_n_per_mps2": 0.527,
+  "driveline_efficiency": 0.85
 }

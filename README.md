@@ -1,6 +1,16 @@
-# GHOST RALLY — Android simulation alpha 0.21.0
+# GHOST RALLY — Android simulation alpha 0.22.0
 
 Native Godot 4.4.1 project, Mobile/Vulkan renderer, Jolt and Terrain3D. Recovered from the public 0.10.0 source release and developed through locally verified milestones.
+
+## Changes in 0.22
+
+- Horizontal thumb movement always maps left to left and right to right, independent of the initial touch position. Enable Android gravity/accelerometer sensors; add neutral calibration, deadzone, inversion and persisted tilt settings.
+- Blend grounded low-speed contact toward rolling behavior, fading out by 43 km/h and disabled during handbraking. Retain fixed integration and high-speed tyre dynamics. Lovo 940 VOC now has user-specified stock targets of 131 PS, 185 km/h and 10.5 s to 100 km/h; flat dry-tarmac simulation gives 10.47 s and approximately 184.5 km/h at both 240 and 720 Hz.
+- Replace the crowded vehicle grid with an original 3D workshop, a large selected car, top previous/next arrows, side specifications and clear race/back actions. Home uses the same lightweight garage, without loading a stage; repeat car selection and race restarts reuse their environment.
+- Add driving/graphics/camera tabs, pause-menu settings and a five-second road recovery action. Chase-camera raycasts keep it outside buildings.
+- Every Rostock corridor building has two-sided footprint wall collision, including distant and large buildings that were previously omitted. Großräschen mapped walls also block both faces.
+- Spatially index tree sweeps while retaining exact collision results; cut grass scatter from nine extras to three, grass distance to 45 m and MV detailed canopy range to 75 m. Android integration defaults to fixed 240 Hz. Race rendering uses 80% scale without MSAA; the Fluid profile uses 65% scale without dynamic shadows. The small showroom uses full resolution and 2x MSAA.
+- All fifteen existing Godot groups plus three new regression groups pass. Collision tests probe 40 actual walls in both directions. Four hundred indexed tree sweeps match the prior exhaustive sweep. Android device FPS and physical sensor behavior still require a phone test.
 
 ## Changes in 0.21
 

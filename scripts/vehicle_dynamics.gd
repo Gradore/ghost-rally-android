@@ -110,7 +110,7 @@ func _tick(velocity: Vector2,yaw: float,steering: float,throttle: float,brake: f
 	var engine_torque := torque_at(vehicle.torque_curve_nm,rpm)
 	if not locked_spec:engine_torque*=1+float(upgrades.engine)*0.09
 	engine_torque*=(1+float(vehicle.turbo_gain)*turbo_boost)/(1+float(vehicle.turbo_gain))
-	var drive := (throttle*engine_torque-(1-throttle)*18.0*clampf(u,0,1))*ratio*0.87
+	var drive := (throttle*engine_torque-(1-throttle)*18.0*clampf(u,0,1))*ratio*float(vehicle.get("driveline_efficiency",0.87))
 	if shift_remaining>0:drive*=0.05
 	if rpm>float(vehicle.redline_rpm):drive=0
 	if reverse:drive=-brake*engine_torque*float(ratios[0])*final_drive*0.60
@@ -160,19 +160,21 @@ func _tick(velocity: Vector2,yaw: float,steering: float,throttle: float,brake: f
 		total+=body_force;moment+=x*body_force.x-longitudinal*body_force.y
 	front_slip=(float(wheels[0].alpha)+float(wheels[1].alpha))*0.5
 	rear_slip=(float(wheels[2].alpha)+float(wheels[3].alpha))*0.5
-	var drag := 0.40*u*absf(u)+normal_total*float(surface.rolling)*clampf(u,-1,1)
+	var drag := float(vehicle.get("drag_n_per_mps2",0.40))*u*absf(u)+normal_total*float(surface.rolling)*clampf(u,-1,1)
 	longitudinal_accel=(total.x-drag)/mass;lateral_accel=total.y/mass
 	velocity+=(forward*longitudinal_accel+right*lateral_accel)*tick_dt
 	yaw_rate=clampf(yaw_rate+moment/(mass*wb*wb*0.26)*tick_dt,-2.5,2.5)
-	if absf(u)<2.5 and normal_total>mass*9.81*0.5:
-		yaw_rate=lerpf(yaw_rate,-u*tan(steering_angle)/wb,tick_dt*8)
-		velocity-=right*v*minf(1,tick_dt*6)
+	if absf(u)<12.0 and not handbrake and normal_total>mass*9.81*0.5:
+		# Blend low-speed tyre dynamics toward rolling contact; fade out before fast corners.
+		var support := 1.0-smoothstep(5.0,12.0,absf(u))
+		yaw_rate=lerpf(yaw_rate,-u*tan(steering_angle)/wb,minf(1,tick_dt*14*support))
+		velocity-=right*v*minf(1,tick_dt*12*support)
 	if not reverse and throttle<0.01 and velocity.length()<0.12:velocity=Vector2.ZERO;yaw_rate=0
 	if reverse and velocity.dot(forward)<-8:velocity+=forward*(-8-velocity.dot(forward))
 	return {"velocity":velocity,"yaw":yaw+yaw_rate*tick_dt,"lateral":v}
 
 func _init() -> void:
-	set_tick_hz(360 if OS.has_feature("android") else 720)
+	set_tick_hz(240 if OS.has_feature("android") else 720)
 
 func set_tick_hz(hz: int) -> void:
 	assert(hz in [240,360,720],"unsupported integration preset")

@@ -93,6 +93,9 @@ func building(data: Dictionary) -> void:
 		line(a+Vector3.UP*(height-0.15),b+Vector3.UP*(height-0.15),0.28,0.24,plaster)
 	var walls := MeshInstance3D.new(); walls.mesh=wall.commit(); walls.material_override=plaster; root.add_child(walls)
 	walls.create_trimesh_collision()
+	for body_node in walls.get_children():
+		for shape_node in body_node.get_children():
+			if shape_node is CollisionShape3D and shape_node.shape is ConcavePolygonShape3D: shape_node.shape.backface_collision=true
 	if data.get("roof","flat")=="flat":
 		polygon(points,height+0.12,mat("aab1ad"))
 	if data.kind=="tourist":
