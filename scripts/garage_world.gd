@@ -35,8 +35,8 @@ func _ready() -> void:
 		box(Vector3(0.1,0.04,6),Vector3(x,5.0,-1),strip)
 		var light := OmniLight3D.new();light.position=Vector3(x,4.0,-0.5);light.light_energy=0.75;light.omni_range=12;light.shadow_enabled=false;add_child(light)
 	var key := SpotLight3D.new();key.position=Vector3(1.5,4.8,3.0);key.look_at_from_position(key.position,Vector3.ZERO,Vector3.UP)
-	key.light_color=Color("fff1de");key.light_energy=5.0;key.spot_range=12;key.spot_angle=50;key.shadow_enabled=true;key.light_cull_mask=1;add_child(key)
-	var fill := OmniLight3D.new();fill.position=Vector3(-3,2.7,-2.0);fill.light_color=Color("b6d7ed");fill.light_energy=1.8;fill.omni_range=8;fill.light_cull_mask=1;add_child(fill)
+	key.light_color=Color("fff1de");key.light_energy=2.8;key.spot_range=12;key.spot_angle=50;key.shadow_enabled=true;key.light_cull_mask=1;add_child(key)
+	var fill := OmniLight3D.new();fill.position=Vector3(-3,2.7,-2.0);fill.light_color=Color("b6d7ed");fill.light_energy=1.1;fill.omni_range=8;fill.light_cull_mask=1;add_child(fill)
 	reflection=ReflectionProbe.new();reflection.position=Vector3(0,2.1,0);reflection.size=Vector3(14,6,14)
 	reflection.interior=true;reflection.box_projection=true;reflection.cull_mask=2;reflection.reflection_mask=1;reflection.intensity=0.85;reflection.update_mode=ReflectionProbe.UPDATE_ONCE;add_child(reflection)
 	# Soft contact shadow remains inexpensive when dynamic shadows are disabled.

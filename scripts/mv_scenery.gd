@@ -43,6 +43,39 @@ func roof_outline(points: PackedVector2Array) -> PackedVector2Array:
 				result.remove_at(i);changed=true;break
 	return result
 
+func pitched_polygon(p: PackedVector2Array,h: float,cap: SurfaceTool,wall: SurfaceTool,roof_color: Color,color: Color) -> void:
+	# Split at the ridge before triangulation. Each resulting roof half is planar
+	# and clipped to the source footprint, including concave notches.
+	var longest := 0.0;var axis := Vector2.RIGHT
+	for i in p.size():
+		var edge := p[(i+1)%p.size()]-p[i]
+		if edge.length()>longest:longest=edge.length();axis=edge.normalized()
+	var across := Vector2(-axis.y,axis.x);var local := PackedVector2Array()
+	var lo := Vector2(INF,INF);var hi := Vector2(-INF,-INF)
+	for v in p:
+		var q := Vector2(v.dot(axis),v.dot(across));local.append(q);lo=lo.min(q);hi=hi.max(q)
+	var middle := (lo.y+hi.y)*0.5;var half := maxf(0.1,(hi.y-lo.y)*0.5);var rise := minf(3.0,half*0.45)
+	for interval in [[lo.y-1,middle],[middle,hi.y+1]]:
+		var clip := PackedVector2Array([Vector2(lo.x-1,interval[0]),Vector2(hi.x+1,interval[0]),Vector2(hi.x+1,interval[1]),Vector2(lo.x-1,interval[1])])
+		for polygon in Geometry2D.intersect_polygons(local,clip):
+			var indices := Geometry2D.triangulate_polygon(polygon)
+			for j in range(0,indices.size(),3):
+				var tri: Array[Vector3]=[]
+				for k in 3:
+					var q: Vector2=polygon[indices[j+k]];var v := axis*q.x+across*q.y
+					tri.append(Vector3(v.x,h+rise*maxf(0,1-absf(q.y-middle)/half),v.y))
+				var n := (tri[1]-tri[0]).cross(tri[2]-tri[0]).normalized();if n.y<0:n=-n
+				_tri(cap,tri[0],tri[1],tri[2],n,roof_color)
+	for i in p.size():
+		var a := p[i];var b := p[(i+1)%p.size()];var breaks: Array[Vector2]=[a,b]
+		var ya := a.dot(across)-middle;var yb := b.dot(across)-middle
+		if ya*yb<0:breaks.insert(1,a.lerp(b,ya/(ya-yb)))
+		for j in range(breaks.size()-1):
+			var x := breaks[j];var y := breaks[j+1]
+			var top_a := h+rise*maxf(0,1-absf(x.dot(across)-middle)/half);var top_b := h+rise*maxf(0,1-absf(y.dot(across)-middle)/half)
+			var normal := Vector3(-(y-x).y,0,(y-x).x).normalized()
+			_quad(wall,Vector3(x.x,h,x.y),Vector3(x.x,top_a,x.y),Vector3(y.x,h,y.y),Vector3(y.x,top_b,y.y),normal,color)
+
 func _building(data: Dictionary) -> void:
 	var p := _polygon(data.p)
 	if p.size()<3:return
@@ -103,6 +136,8 @@ func _building(data: Dictionary) -> void:
 			var normal: Vector3=(t[1]-t[0]).cross(t[2]-t[0]).normalized()
 			if normal.y<0:normal=-normal
 			_tri(cap,t[0],t[1],t[2],normal,roof_color)
+	elif roof_kind in ["gabled","hipped"]:
+		pitched_polygon(p,h,cap,wall,roof_color,color)
 	else:
 		for i in Geometry2D.triangulate_polygon(p):
 			cap.set_normal(Vector3.UP);cap.set_color(roof_color);cap.set_uv(p[i]/2);cap.add_vertex(Vector3(p[i].x,h,p[i].y))
@@ -129,7 +164,7 @@ void fragment(){
  ALBEDO=COLOR.rgb*mix(0.97,0.80+joint*0.20,brick)*(0.96+variation*0.04);ROUGHNESS=0.9;
 }"""
 	var facade := ShaderMaterial.new();facade.shader=facade_shader;wall_material=facade
-	var roof := StandardMaterial3D.new();roof.vertex_color_use_as_albedo=true;roof.roughness=0.88;roof.cull_mode=BaseMaterial3D.CULL_DISABLED;roof_material=roof
+	var roof := ShaderMaterial.new();roof.shader=preload("res://assets/shaders/roof24.gdshader");roof_material=roof
 	glass=StandardMaterial3D.new();glass.albedo_color=Color("344a55");glass.roughness=0.24;glass.metallic=0.35;glass.cull_mode=BaseMaterial3D.CULL_DISABLED
 	for b in data.buildings:_building(b)
 	for b in batches.values():
@@ -142,7 +177,9 @@ void fragment(){
 		if area.kind in ["wood","forest"]:woods.append(p);tint=Color("4e6750")
 		if area.kind=="farmland":field_polygons.append(p)
 		if area.kind=="water":world.water_polygons.append(p);tint=Color("526f77")
-		var mat: Material=world._textured_material("res://assets/nature/forrest_ground_01_diff.jpg",tint)
+		var mat := ShaderMaterial.new();mat.shader=preload("res://assets/shaders/rural_ground24.gdshader")
+		mat.set_shader_parameter("albedo_tex",load("res://assets/nature/forrest_ground_01_diff.jpg"));mat.set_shader_parameter("normal_tex",load("res://assets/nature/forrest_ground_01_nor_gl.jpg"))
+		mat.set_shader_parameter("tint",tint*0.65);mat.set_shader_parameter("farmland",area.kind=="farmland")
 		_ground(p,mat,-0.06)
 	# Local connecting streets, including the bend, driveway junctions and farm access roads.
 	var paved: Material=world._textured_material("res://assets/textures/asphalt_v10.png",Color("929b98"))

@@ -37,8 +37,12 @@ func _loft(parent: Node3D, rings: Array, mat: Material) -> void:
 	for i in range(rings.size()-1):
 		for j in rings[i].size():
 			var next: int = (j+1)%rings[i].size()
-			for vertex in [rings[i][j],rings[i][next],rings[i+1][j],rings[i][next],rings[i+1][next],rings[i+1][j]]:
-				surface.add_vertex(vertex)
+			for pair in [[i,j],[i,next],[i+1,j],[i,next],[i+1,next],[i+1,j]]:
+				var ring_i: int=pair[0];var corner: int=pair[1];var count: int=rings[ring_i].size()
+				var tangent: Vector3=rings[ring_i][(corner+1)%count]-rings[ring_i][(corner-1+count)%count]
+				var along: Vector3=rings[mini(ring_i+1,rings.size()-1)][corner]-rings[maxi(0,ring_i-1)][corner]
+				var normal := along.cross(tangent).normalized()
+				surface.set_normal(normal);surface.set_uv(Vector2(rings[ring_i][corner].z,rings[ring_i][corner].y));surface.add_vertex(rings[ring_i][corner])
 	for end in [0,rings.size()-1]:
 		var center := Vector3.ZERO
 		for vertex in rings[end]: center+=vertex
@@ -46,8 +50,9 @@ func _loft(parent: Node3D, rings: Array, mat: Material) -> void:
 		for j in rings[end].size():
 			var edge_a: Vector3=rings[end][j]
 			var edge_b: Vector3=rings[end][(j+1)%rings[end].size()]
-			for vertex in [center,edge_a,edge_b] if end>0 else [center,edge_b,edge_a]:surface.add_vertex(vertex)
-	surface.generate_normals()
+			for vertex in [center,edge_a,edge_b] if end>0 else [center,edge_b,edge_a]:
+				surface.set_normal(Vector3.BACK if end>0 else Vector3.FORWARD);surface.set_uv(Vector2(vertex.x,vertex.y));surface.add_vertex(vertex)
+	surface.generate_tangents()
 	var instance := MeshInstance3D.new()
 	instance.mesh=surface.commit()
 	instance.material_override=mat
@@ -67,7 +72,7 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 	material=_mat(paint,0.28,0.25,ghost)
 	material.clearcoat_enabled=not ghost
 	material.clearcoat=0.80
-	material.clearcoat_roughness=0.26
+	material.clearcoat_roughness=0.18
 	material.cull_mode=BaseMaterial3D.CULL_DISABLED
 	var body_paint: Material=material
 	if not ghost:
@@ -76,8 +81,8 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 	rear_lamps=_mat(Color("a82015"),0.24,0.08,ghost)
 	rear_lamps.emission_enabled=not ghost;rear_lamps.emission=Color("ed2814");rear_lamps.emission_energy_multiplier=0.02
 	var trim := _mat(Color(0.1,0.16,0.18,0.3) if ghost else Color("12171b"),0.8,0.05,ghost)
-	var glass := _mat(Color(0.15,0.35,0.45,0.3) if ghost else Color("263a44"),0.42,0.0,ghost)
-	glass.metallic=0.32
+	var glass := _mat(Color(0.15,0.35,0.45,0.3) if ghost else Color("31424e"),0.42,0.0,ghost)
+	glass.metallic=0.12
 	glass.roughness=0.10
 	glass.clearcoat_enabled=not ghost;glass.clearcoat=0.95;glass.clearcoat_roughness=0.08
 	glass.cull_mode=BaseMaterial3D.CULL_DISABLED
@@ -167,6 +172,18 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 				_box(body,Vector3(0.16,0.072,0.012),Vector3(side*width*0.42,0.60+part*0.081,length*0.5+0.062),lens)
 			for z in [-0.65,0.35,1.0]:_box(body,Vector3(0.013,0.22,0.018),Vector3(side*width*0.504,0.78,z),trim)
 	if not ghost:
+		for side in [-1.0,1.0]:
+			for axle in [-1.0,1.0]:
+				for segment in 18:
+					var a0 := float(segment)*PI/18.0;var a1 := float(segment+1)*PI/18.0
+					var start := Vector3(side*width*0.505,radius+sin(a0)*radius*1.13,axle*wheelbase*0.5+cos(a0)*radius*1.13)
+					var finish := Vector3(side*width*0.505,radius+sin(a1)*radius*1.13,axle*wheelbase*0.5+cos(a1)*radius*1.13)
+					var strip := _box(body,Vector3(0.035,0.026,start.distance_to(finish)),(start+finish)*0.5,trim)
+					strip.rotation.x=-atan2((finish-start).y,(finish-start).z)
+			for seam in [-0.85,0.37,1.03]:
+				_box(body,Vector3(0.008,0.49,0.007),Vector3(side*width*0.506,0.64,seam),trim)
+		_box(body,Vector3(width*0.73,0.010,0.016),Vector3(0,0.913,-0.84),trim)
+	if not ghost:
 		# Body seams, wiper, exhaust and rally mudflaps enrich the authored mesh.
 		for side in [-1.0,1.0]:
 			_box(body,Vector3(0.015,0.012,1.18),Vector3(side*width*0.35,1.512,0.26),trim)
@@ -192,8 +209,9 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 func set_braking(enabled: bool) -> void:
 	if rear_lamps!=null and not ghost:rear_lamps.emission_energy_multiplier=0.85 if enabled else 0.02
 
-func animate_car(steer: float, slip: float, speed: float, delta: float) -> void:
-	for wheel in wheels:wheel.rotation.y=lerpf(wheel.rotation.y,-steer*0.45/(1.0+speed*0.018),minf(1.0,delta*10.0))
+func animate_car(steer: float, slip: float, speed: float, delta: float, road_angle: float=NAN) -> void:
+	var angle := -road_angle if is_finite(road_angle) else -steer*0.55
+	for wheel in wheels:wheel.rotation.y=angle
 
 
 func build_dust() -> void:
@@ -228,6 +246,7 @@ func update_dust(enabled: bool,speed_mps: float) -> void:
 
 func update_wheel_visuals(states: Array) -> void:
 	for i in mini(4,states.size()):
+		if i<2 and wheel_spins[i]!=null:wheel_spins[i].get_parent().rotation.y=-float(states[i].get("steer_angle",0.0))
 		if wheel_spins[i]!=null:wheel_spins[i].rotation.x=-float(states[i].spin)
 
 func update_suspension_visuals(sim: RefCounted) -> void:

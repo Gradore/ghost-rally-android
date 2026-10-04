@@ -34,6 +34,8 @@ func run_tests() -> void:
 	game.velocity=Vector2.ZERO
 	game.reverse_engaged=false
 	game.throttle=0.0
+	# New reverse input requires releasing a service brake held during the stop.
+	game.brake=0.0;game.update_vehicle(1.0/60.0)
 	game.brake=1.0
 	for i in 60: game.update_vehicle(1.0/60.0)
 	var reverse_direction := Vector2(-sin(game.yaw),-cos(game.yaw))

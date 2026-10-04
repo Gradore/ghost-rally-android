@@ -565,8 +565,11 @@ func build(data: Dictionary) -> void:
 		gravel_shader.set_shader_parameter("normal_tex",load("res://assets/nature/gravel_floor_nor_gl.jpg"))
 		gravel_shader.set_shader_parameter("road_half_width",road_width*0.5)
 		driving_surface=gravel_shader
+	var asphalt_mat := ShaderMaterial.new();asphalt_mat.shader=preload("res://assets/shaders/asphalt24.gdshader")
+	asphalt_mat.set_shader_parameter("albedo_tex",load("res://assets/textures/asphalt_v10.png"));asphalt_mat.set_shader_parameter("normal_tex",load("res://assets/textures/asphalt_normal.png"))
+	if asphalt:driving_surface=asphalt_mat
 	if track.get("mapped_mv",false):
-		var paved: Material=_textured_material("res://assets/textures/asphalt_v10.png",Color("aeb4b2"))
+		var paved: Material=asphalt_mat
 		_add_strip(road,road_width,0.035,driving_surface,0,false,1)
 		_add_strip(road,road_width,0.035,paved,0,false,0)
 		_fill_bends(driving_surface,1);_fill_bends(paved,0)
@@ -743,7 +746,7 @@ func _start_asphalt() -> void:
 		for v in [a-side,b-side,a+side,a+side,b-side,b+side]:
 			st.set_normal(Vector3.UP); st.set_uv(Vector2(v.x,v.z)/4.0); st.add_vertex(v+Vector3.UP*0.065)
 	var m := MeshInstance3D.new(); m.mesh=st.commit()
-	m.material_override=_textured_material("res://assets/textures/asphalt_v10.png",Color.WHITE)
+	var mat := ShaderMaterial.new();mat.shader=preload("res://assets/shaders/asphalt24.gdshader");mat.set_shader_parameter("albedo_tex",load("res://assets/textures/asphalt_v10.png"));mat.set_shader_parameter("normal_tex",load("res://assets/textures/asphalt_normal.png"));m.material_override=mat
 	road.add_child(m)
 
 func _surface_segment(progress: float) -> Dictionary:

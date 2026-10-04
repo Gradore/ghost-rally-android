@@ -79,5 +79,8 @@
     "tyre_damper_nspm": 450,
     "antiroll_npm": 10000,
     "ride_height_m": 0.55
-  }
+  },
+  "steering_lock_degrees": 37.0,
+  "steering_rate_rad_s": 4.8,
+  "brake_capacity_mps2": 15.0
 }

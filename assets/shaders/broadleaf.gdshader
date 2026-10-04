@@ -17,7 +17,9 @@ void fragment(){
  ALPHA_SCISSOR_THRESHOLD=0.36;
  ALPHA_ANTIALIASING_EDGE=0.20;
  ALPHA_TEXTURE_COORDINATE=UV*vec2(textureSize(leaf_tex,0));
- ALBEDO=leaf.rgb*COLOR.rgb*vec3(0.66,0.81,0.60);
- ROUGHNESS=0.9;
- BACKLIGHT=vec3(0.16,0.22,0.06);
+ ALBEDO=leaf.rgb*COLOR.rgb*vec3(0.52,0.75,0.40);
+ float vein=exp(-abs(p.x)*45.0)*0.12;
+ ALBEDO*=1.0+vein;
+ ROUGHNESS=0.88;
+ BACKLIGHT=vec3(0.12,0.20,0.035);
 }

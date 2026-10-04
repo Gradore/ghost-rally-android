@@ -1,6 +1,9 @@
 extends RefCounted
+static var geometry_cache := {}
 # Spatial branch clusters using licensed photographed needles, not full-tree billboards.
 static func mesh(variant: int=0, low_detail: bool=false) -> ArrayMesh:
+	var cache_key := "pine"+str(variant)+str(low_detail)
+	if geometry_cache.has(cache_key):return geometry_cache[cache_key]
 	var trunk := SurfaceTool.new();trunk.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var foliage := SurfaceTool.new();foliage.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var rng := RandomNumberGenerator.new();rng.seed=4817+variant*973
@@ -37,6 +40,7 @@ static func mesh(variant: int=0, low_detail: bool=false) -> ArrayMesh:
 	var needles := ShaderMaterial.new();needles.shader=load("res://assets/shaders/pine_foliage.gdshader")
 	needles.set_shader_parameter("diffuse_tex",load("res://assets/nature/twig_diff.jpg"));needles.set_shader_parameter("alpha_tex",load("res://assets/nature/twig_alpha.png"));needles.set_shader_parameter("normal_tex",load("res://assets/nature/twig_nor_gl.png"))
 	result.surface_set_material(1,needles)
+	geometry_cache[cache_key]=result
 	return result
 static func triangle(s: SurfaceTool,a: Vector3,b: Vector3,c: Vector3,ua: Vector2,ub: Vector2,uc: Vector2) -> void:
 	for pair in [[a,ua],[b,ub],[c,uc]]:s.set_uv(pair[1]);s.add_vertex(pair[0])
@@ -75,6 +79,8 @@ static func plant_variants(parent: Node3D, transforms: Array[Transform3D], group
 		plant_mesh(parent,subset,geometry,group,distance,begin_distance)
 
 static func broadleaf_mesh(variant: int=0, low_detail: bool=false) -> ArrayMesh:
+	var cache_key := "oak"+str(variant)+str(low_detail)
+	if geometry_cache.has(cache_key):return geometry_cache[cache_key]
 	var wood := SurfaceTool.new();wood.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var leaves := SurfaceTool.new();leaves.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var rng := RandomNumberGenerator.new();rng.seed=6701+variant*1709
@@ -87,13 +93,14 @@ static func broadleaf_mesh(variant: int=0, low_detail: bool=false) -> ArrayMesh:
 		tube(wood,start,end,0.095,0.025)
 		for cluster in (3 if low_detail else 4):
 			var center := end+Vector3(rng.randf_range(-0.7,0.7),rng.randf_range(-0.15,1.5),rng.randf_range(-0.7,0.7))
-			for face in (5 if low_detail else 14):
+			for face in (14 if low_detail else 52):
 				var a := rng.randf_range(-PI,PI)
-				var right := Vector3(cos(a),0,sin(a))*rng.randf_range(0.35,0.60)
-				var up := Vector3(-sin(a)*0.15,0.45,cos(a)*0.15)
-				if face%3==2:up=Vector3(-sin(a),0.15,cos(a))*0.5
-				var leaf_center := center+Vector3(rng.randf_range(-0.8,0.8),rng.randf_range(-0.5,0.65),rng.randf_range(-0.8,0.8))
-				var tint := Color(rng.randf_range(0.83,1.07),rng.randf_range(0.9,1.1),rng.randf_range(0.8,1.0))
+				var right := Vector3(cos(a),0,sin(a))*(rng.randf_range(0.27,0.39) if low_detail else rng.randf_range(0.12,0.23))
+				var up := Vector3(-sin(a)*0.08,0.32 if low_detail else rng.randf_range(0.18,0.29),cos(a)*0.08)
+				if face%3==2:up=Vector3(-sin(a),0.08,cos(a))*(0.30 if low_detail else 0.20)
+				var leaf_center := center+Vector3(rng.randf_range(-1.1,1.1),rng.randf_range(-0.65,0.8),rng.randf_range(-1.1,1.1))
+				var shade := lerpf(0.65,1.05,clampf((leaf_center.y-3.0)/4.0,0,1))
+				var tint := Color(rng.randf_range(0.83,1.07),rng.randf_range(0.9,1.1),rng.randf_range(0.8,1.0))*shade
 				var uv0 := Vector2(rng.randf_range(0.08,0.55),rng.randf_range(0.08,0.34))
 				for pair in [[leaf_center-right-up,Vector2(0,1)],[leaf_center-right+up,Vector2(0,0)],[leaf_center+right-up,Vector2(1,1)],[leaf_center+right-up,Vector2(1,1)],[leaf_center-right+up,Vector2(0,0)],[leaf_center+right+up,Vector2(1,0)]]:
 					leaves.set_normal((pair[0]-Vector3(0,4.4,0)).normalized());leaves.set_color(tint);leaves.set_uv(uv0+pair[1]*Vector2(0.24,0.24));leaves.set_uv2(pair[1]);leaves.add_vertex(pair[0])
@@ -102,6 +109,7 @@ static func broadleaf_mesh(variant: int=0, low_detail: bool=false) -> ArrayMesh:
 	var bark := StandardMaterial3D.new();bark.albedo_texture=load("res://assets/nature/bark_diff.jpg");bark.albedo_color=Color(0.65,0.62,0.55);bark.roughness=0.95
 	result.surface_set_material(0,bark)
 	var leaf_mat := ShaderMaterial.new();leaf_mat.shader=load("res://assets/shaders/broadleaf.gdshader");leaf_mat.set_shader_parameter("leaf_tex",load("res://assets/textures/oak_v10.png"));result.surface_set_material(1,leaf_mat)
+	geometry_cache[cache_key]=result
 	return result
 
 static func tube(s: SurfaceTool,a: Vector3,b: Vector3,r0: float,r1: float) -> void:

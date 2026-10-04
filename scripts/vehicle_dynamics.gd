@@ -89,13 +89,15 @@ func _tick(velocity: Vector2,yaw: float,steering: float,throttle: float,brake: f
 	var mass := float(vehicle.mass_kg);var wb := float(vehicle.wheelbase_m);var track := float(vehicle.track_m)
 	var fraction := float(vehicle.front_fraction);var a := wb*(1-fraction);var b := wb*fraction
 	var radius := float(vehicle.wheel_radius_m)
-	var target_angle := steering*0.55/(1+absf(u)*0.018)
-	if setup.get("steering_assist",false) and absf(u)>10.0 and not handbrake:
+	var mechanical_angle := deg_to_rad(float(vehicle.get("steering_lock_degrees",37.0)))
+	var target_angle := clampf(steering,-1,1)*mechanical_angle
+	if setup.get("steering_assist",false) and velocity.length()>18.0 and not handbrake:
 		# ASSUMPTION: controllable range near available lateral acceleration, not a yaw force.
 		var lateral_limit := 6.5 if gravel else 9.5
-		var range_angle := atan(wb*lateral_limit*1.35/(u*u))
-		target_angle=steering*minf(absf(target_angle)/maxf(absf(steering),0.001),range_angle)
-	steering_angle=move_toward(steering_angle,target_angle,tick_dt*2.6)
+		var range_angle := maxf(0.085,atan(wb*lateral_limit*1.55/maxf(velocity.length_squared(),1.0)))
+		var blend := smoothstep(18.0,32.0,velocity.length())
+		target_angle=steering*lerpf(mechanical_angle,minf(mechanical_angle,range_angle),blend)
+	steering_angle=move_toward(steering_angle,target_angle,tick_dt*float(vehicle.get("steering_rate_rad_s",4.8)))
 	var surface: Dictionary=surfaces["grass" if not on_road else "gravel" if gravel else "tarmac_dry"]
 	var locked_spec := bool(cfg.get("voc",false))
 	var upgrade_grip := 1.0 if locked_spec else 1.0+float(upgrades.handling)*0.025
@@ -140,12 +142,18 @@ func _tick(velocity: Vector2,yaw: float,steering: float,throttle: float,brake: f
 		var load := float(suspension.hubs[i].normal)
 		if not wheel_contacts[i]:load=0.0
 		wheel.load=load;normal_total+=load
-		var delta := steering_angle if front else 0.0;var cs := cos(delta);var sn := sin(delta)
+		var delta := 0.0
+		if front and absf(steering_angle)>0.001:
+			var turn_radius := wb/tan(absf(steering_angle))
+			delta=signf(steering_angle)*atan(wb/maxf(0.5,turn_radius-side*signf(steering_angle)*track*0.5))
+		wheel["steer_angle"]=delta
+		var cs := cos(delta);var sn := sin(delta)
 		var hub_u := u+yaw_rate*x;var hub_v := v-yaw_rate*longitudinal
 		var tyre_u := hub_u*cs+hub_v*sn;var tyre_v := -hub_u*sn+hub_v*cs
 		var kappa := clampf((float(wheel.omega)*radius-tyre_u)/maxf(absf(tyre_u),2.0),-3.0,3.0)
 		var alpha := atan2(tyre_v,maxf(absf(tyre_u),2.0))
-		var relaxation := minf(1,tick_dt*maxf(absf(tyre_u),2)/float(surface.relaxation_m))
+		var relaxation_length := float(surface.get("brake_relaxation_m",0.12)) if brake>0.01 or handbrake else float(surface.relaxation_m)
+		var relaxation := minf(1,tick_dt*maxf(absf(tyre_u),2)/relaxation_length)
 		wheel.kappa=lerpf(wheel.kappa,kappa,relaxation);wheel.alpha=lerpf(wheel.alpha,alpha,relaxation)
 		var grip := upgrade_grip*float(wheel_grip[i])*Tyre.thermal_grip(wheel.temperature_k,wheel.pressure_pa)
 		# ASSUMPTION: mild load sensitivity relative to static quarter-car load.
@@ -154,13 +162,13 @@ func _tick(velocity: Vector2,yaw: float,steering: float,throttle: float,brake: f
 		var fy := -Tyre.magic(wheel.alpha,load,surface.lateral)*grip
 		var force := Tyre.combined(fx,fy,load*float(surface.longitudinal[2])*grip)
 		wheel.force=force
-		var brake_torque: float= (0 if reverse else brake)*mass*12*radius*(bias if front else 1-bias)*0.5
+		var brake_torque: float= (0 if reverse else brake)*mass*float(vehicle.get("brake_capacity_mps2",15.0))*radius*(bias if front else 1-bias)*0.5
 		if setup.get("abs_assist",false) and not reverse and tyre_u>5.0 and brake>0.01 and load>1.0:
 			var pressure_target := 0.10 if kappa< -0.16 else 1.0
-			wheel.abs_pressure=move_toward(float(wheel.abs_pressure),pressure_target,tick_dt*(25.0 if pressure_target<0.5 else 4.0))
+			wheel.abs_pressure=move_toward(float(wheel.abs_pressure),pressure_target,tick_dt*(32.0 if pressure_target<0.5 else 10.0))
 			brake_torque*=float(wheel.abs_pressure)
 		else:wheel.abs_pressure=1.0
-		if handbrake and not front:brake_torque+=1800
+		if handbrake and not front:brake_torque+=2400
 		var omega_before := float(wheel.omega)
 		var brake_direction := signf(omega_before) if absf(omega_before)>0.01 else signf(tyre_u)
 		wheel.omega+=(float(drive_torques[i])-force.x*radius-brake_torque*brake_direction)/float(wheel.inertia_kgm2)*tick_dt

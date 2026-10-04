@@ -1,7 +1,7 @@
 extends RefCounted
 class_name GameData
 
-const PHYSICS_VERSION := "23.mobile.1"
+const PHYSICS_VERSION := "24.mobile.1"
 const CARS := [
 	{"id":"kite", "name":"KITE SPRINT", "class":"C", "drive":"FWD", "color":Color("f2bd45"), "mass":1080.0, "power":190.0, "grip":14.0, "rear_grip":12.5, "top":61.0, "steer":3.15},
 	{"id":"mira", "name":"MIRA TURBO", "class":"B", "drive":"FWD", "color":Color("ef8f69"), "mass":1160.0, "power":235.0, "grip":13.5, "rear_grip":11.8, "top":67.0, "steer":3.0},
@@ -55,5 +55,5 @@ static func default_save() -> Dictionary:
 		upgrades.append({"engine":0,"handling":0,"brakes":0})
 		livery.append(0)
 		mastery.append(0)
-	return {"races":0, "xp":0, "rc":300, "selected_car":0, "selected_track":0, "best":{}, "best_sectors":{}, "mastery":mastery, "setup":setup, "upgrades":upgrades, "livery":livery, "casual":false, "sensitivity":1.0, "control_mode":"wheel", "graphics":"balanced", "tilt_invert":false, "camera_distance":7.0, "camera_height":2.5, "camera_fov":65.0}
+	return {"races":0, "xp":0, "rc":300, "selected_car":0, "selected_track":0, "best":{}, "best_sectors":{}, "mastery":mastery, "setup":setup, "upgrades":upgrades, "livery":livery, "casual":false, "sensitivity":1.0, "control_mode":"wheel", "pedal_mode":"buttons", "graphics":"balanced", "tilt_invert":false, "camera_distance":7.0, "camera_height":2.5, "camera_fov":65.0}
 

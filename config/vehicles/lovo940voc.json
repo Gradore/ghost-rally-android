@@ -75,5 +75,8 @@
   "target_top_speed_kmh": 185,
   "target_0_100_s": 10.5,
   "drag_n_per_mps2": 0.527,
-  "driveline_efficiency": 0.85
+  "driveline_efficiency": 0.85,
+  "steering_lock_degrees": 37.0,
+  "steering_rate_rad_s": 4.8,
+  "brake_capacity_mps2": 15.0
 }

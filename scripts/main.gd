@@ -46,6 +46,7 @@ var brake := 0.0
 var handbrake := false
 var velocity := Vector2.ZERO
 var reverse_engaged := false
+var brake_was_down := false
 var yaw := 0.0
 var dynamics := preload("res://scripts/vehicle_dynamics.gd").new()
 var speed := 0.0
@@ -169,24 +170,24 @@ func build_scene() -> void:
 	environment.sky=atmosphere
 	environment.reflected_light_source=Environment.REFLECTION_SOURCE_SKY
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color("9bb7b2")
-	environment.ambient_light_energy = 0.50
+	environment.ambient_light_color = Color("a1b5c6")
+	environment.ambient_light_energy = 0.32
 	environment.tonemap_mode = Environment.TONE_MAPPER_ACES
 	environment.fog_enabled = true
-	environment.fog_density = 0.0016
+	environment.fog_density = 0.00075
 	environment.fog_sky_affect = 0.08
-	environment.fog_light_color = Color("b1b8af")
+	environment.fog_light_color = Color("aec6d9")
 	sky = WorldEnvironment.new()
 	sky.environment = environment
 	add_child(sky)
 	sun = DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-22,35,0)
+	sun.rotation_degrees = Vector3(-38,35,0)
 	cloud_sky.set_shader_parameter("sun_direction",sun.transform.basis.z)
-	sun.light_color = Color("ffdfb2")
+	sun.light_color = Color("fff0d7")
 	sun.light_energy = 1.18
 	sun.shadow_enabled = true
 	sun.shadow_opacity=0.78
-	sun.directional_shadow_max_distance = 70
+	sun.directional_shadow_max_distance = 95
 	sun.directional_shadow_mode=DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	sun.directional_shadow_blend_splits=true
 	add_child(sun)
@@ -373,6 +374,8 @@ func apply_graphics() -> void:
 	var economy: bool=save.get("graphics","balanced")=="economy"
 	var detail: bool=save.get("graphics","balanced")=="detail"
 	var in_showroom := is_instance_valid(showroom) and showroom.visible
+	sky.environment.fog_enabled=not in_showroom
+	sky.environment.ambient_light_energy=0.24 if in_showroom else 0.32
 	get_viewport().scaling_3d_scale=1.0 if in_showroom or detail else 0.65 if economy else 0.80
 	get_viewport().msaa_3d=Viewport.MSAA_2X if in_showroom or detail else Viewport.MSAA_DISABLED
 	get_viewport().screen_space_aa=Viewport.SCREEN_SPACE_AA_FXAA if not economy and not in_showroom and not detail else Viewport.SCREEN_SPACE_AA_DISABLED
@@ -583,11 +586,14 @@ func show_settings() -> void:
 			var mode: String=["wheel","tilt","buttons"][i]
 			_button(card,["DAUMEN ↔","NEIGEN","TASTEN"][i],Vector2(32+i*185,165),Vector2(175,45),func():save.control_mode=mode;tilt_zero=Input.get_gravity().x;write_save();show_settings(),save.get("control_mode","wheel")==mode)
 		setting_row(card,"LENKEMPFINDLICHKEIT","sensitivity",234,0.1,0.5,1.5)
-		_label(card,"GAS AUTOMATISCH",20,Color("b8cfcb"),Vector2(32,309),Vector2(360,32))
-		_button(card,"AN" if save.casual else "AUS",Vector2(440,301),Vector2(142,45),func():save.casual=not save.casual;write_save();show_settings(),save.casual)
-		_button(card,"NEIGUNG: MITTE KALIBRIEREN",Vector2(32,370),Vector2(550,45),func():calibrate_tilt())
-		_button(card,"NEIGUNG INVERTIEREN: "+("AN" if save.get("tilt_invert",false) else "AUS"),Vector2(32,432),Vector2(550,45),func():save.tilt_invert=not save.get("tilt_invert",false);write_save();show_settings())
-		_label(card,"Daumen nach links = links. Handy im Querformat neigen.",17,Color("aac7c3"),Vector2(32,498),Vector2(565,40))
+		_label(card,"GAS AUTOMATISCH",20,Color("b8cfcb"),Vector2(32,382),Vector2(360,32))
+		_button(card,"AN" if save.casual else "AUS",Vector2(440,374),Vector2(142,45),func():save.casual=not save.casual;write_save();show_settings(),save.casual)
+		_button(card,"NEIGUNG: MITTE KALIBRIEREN",Vector2(32,438),Vector2(550,45),func():calibrate_tilt())
+		_button(card,"NEIGUNG INVERTIEREN: "+("AN" if save.get("tilt_invert",false) else "AUS"),Vector2(32,492),Vector2(550,45),func():save.tilt_invert=not save.get("tilt_invert",false);write_save();show_settings())
+		_label(card,"GAS / BREMSE",18,Color.WHITE,Vector2(32,310),Vector2(190,35))
+		for i in 2:
+			var mode: String=["buttons","joystick"][i]
+			_button(card,["PEDALE","JOYSTICK ↕"][i],Vector2(230+i*180,302),Vector2(172,45),func():save.pedal_mode=mode;write_save();show_settings(),save.get("pedal_mode","buttons")==mode)
 	elif settings_tab==1:
 		_label(card,"DARSTELLUNG",22,Color.WHITE,Vector2(32,170),Vector2(550,35),true)
 		for i in 3:
@@ -721,8 +727,12 @@ func build_race_ui() -> void:
 		wheel_control.position=Vector2(81,525);wheel_control.size=Vector2(198,168);control_panel.add_child(wheel_control)
 		var hint := _label(control_panel,"DAUMEN ↔",16,Color("eaf2e8"),Vector2(86,681),Vector2(185,27),true);hint.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	else:control_hint("NEIGEN",Vector2(38,544),Vector2(294,133),Color("eaf2e8"))
-	control_hint("BREMSE",Vector2(945,544),Vector2(139,133),Color("ec9486"))
-	control_hint("GAS",Vector2(1096,544),Vector2(140,133),Color("f4c64f"))
+	control_hint("HANDBREMSE",Vector2(945,442),Vector2(291,61),Color("f4c64f"))
+	if save.get("pedal_mode","buttons")=="joystick":
+		var pedals=preload("res://scripts/input/pedal_joystick.gd").new();pedals.game=self;pedals.position=Vector2(975,525);pedals.size=Vector2(250,185);control_panel.add_child(pedals)
+	else:
+		control_hint("BREMSE",Vector2(945,544),Vector2(139,133),Color("ec9486"))
+		control_hint("GAS",Vector2(1096,544),Vector2(140,133),Color("f4c64f"))
 	for panel in ui.get_children():
 		if panel is Panel: panel.add_theme_stylebox_override("panel",_panel(Color(0.025,0.055,0.065,0.78),Color(1,1,1,0.35),10))
 		if panel is Button: panel.add_theme_stylebox_override("normal",_panel(Color(0.025,0.055,0.065,0.65),Color(1,1,1,0.60),10))
@@ -732,7 +742,7 @@ func control_hint(title: String, pos: Vector2, dimensions: Vector2, color: Color
 	p.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	p.add_theme_stylebox_override("panel",_panel(Color(0.025,0.055,0.065,0.40),Color(1,1,1,0.7),14))
 	p.modulate.a=0.9
-	var l := _label(p,title,29 if title.length()<4 else 20,color,Vector2(0,44),dimensions)
+	var l := _label(p,title,29 if title.length()<4 else 20,color,Vector2(0,maxf(0,(dimensions.y-36)*0.5)),Vector2(dimensions.x,36))
 	l.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
 	l.mouse_filter=Control.MOUSE_FILTER_IGNORE
 
@@ -741,7 +751,7 @@ func show_pause() -> void:
 	state="pause"
 	touch.clear()
 	touch_anchor.clear()
-	steer=0;throttle=0;brake=0
+	steer=0;throttle=0;brake=0;handbrake=false;reverse_engaged=false;brake_was_down=false
 	clear_ui()
 	var veil := ColorRect.new(); veil.color=Color(0.015,0.05,0.07,0.77); veil.set_anchors_preset(Control.PRESET_FULL_RECT); ui.add_child(veil)
 	var card := _card(ui,Vector2(427,83),Vector2(426,554))
@@ -828,20 +838,34 @@ func get_controls() -> void:
 	for index in touch:
 		var pos: Vector2=touch[index]
 		var anchor: Vector2=touch_anchor.get(index,pos)
+		if anchor.x>width*0.73 and anchor.y>=height*0.61 and anchor.y<height*0.71:
+			handbrake=true;continue
+		if anchor.y<height*0.71 and anchor.x>width*0.73:continue
 		if anchor.y<height*0.64: continue
 		if anchor.x<width*0.27:
 			if save.get("control_mode","wheel")=="buttons":steer += -1 if pos.x<width*0.142 else 1
 			else:
 				steer+=clampf((pos.x-anchor.x)/(width*0.085),-1,1)
 		elif anchor.x>width*0.73:
-			if anchor.x>width*0.855: throttle=1
-			else: brake=1
+			if save.get("pedal_mode","buttons")=="joystick":
+				var amount := clampf((anchor.y-pos.y)/(height*0.09),-1,1)
+				amount=signf(amount)*maxf(0.0,(absf(amount)-0.06)/0.94)
+				throttle=maxf(throttle,maxf(0.0,amount));brake=maxf(brake,maxf(0.0,-amount))
+			else:
+				if anchor.x>width*0.855: throttle=1
+				else: brake=1
 	if save.get("control_mode","wheel")=="tilt":
 		var tilt := Input.get_gravity().x
 		if Input.get_gravity().length_squared()<1.0: tilt=Input.get_accelerometer().x
 		steer=tilt_steering(tilt)
-	steer=clampf(steer,-1,1)*float(save.sensitivity)
-	if save.casual and brake<0.5: throttle=1
+	steer=clampf(steer*float(save.sensitivity),-1,1)
+	if save.casual and brake<0.05 and not handbrake: throttle=1
+
+func update_reverse(longitudinal: float) -> void:
+	var down := brake>0.1
+	if not down or throttle>0.1:reverse_engaged=false
+	elif not brake_was_down and absf(longitudinal)<0.3 and not handbrake:reverse_engaged=true
+	brake_was_down=down
 
 func tilt_steering(sensor_x: float) -> float:
 	var value := (sensor_x-tilt_zero)/4.0
@@ -916,8 +940,7 @@ func update_vehicle(delta: float) -> void:
 	set.steering_assist=save.get("steering_assist",true)
 	var upgrades: Dictionary=save.upgrades[active_car]
 	var longitudinal := velocity.dot(Vector2(-sin(yaw),-cos(yaw)))
-	if brake<0.1 or throttle>0.1: reverse_engaged=false
-	elif brake>0.5 and absf(longitudinal)<0.7: reverse_engaged=true
+	update_reverse(longitudinal)
 	var on_road := absf(world.lateral_offset(car.position))<world.road_width_at(world.progress_at(car.position,race_progress))*0.5
 	var gravel: bool=world.gravel_at(race_progress)
 	var axle_base: float=cfg.get("wheelbase",2.6)
@@ -958,7 +981,7 @@ func update_vehicle(delta: float) -> void:
 	car.rotation.y=yaw
 	speed=velocity.length()
 	lateral_slip=lateral
-	car.animate_car(steer,lateral,speed,delta)
+	car.animate_car(steer,lateral,speed,delta,dynamics.steering_angle)
 	car.set_braking(brake>0.1)
 	car.update_dust(world.gravel_at(race_progress),speed)
 	car.update_wheel_visuals(dynamics.wheels)

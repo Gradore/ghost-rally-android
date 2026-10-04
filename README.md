@@ -1,6 +1,15 @@
-# GHOST RALLY — Android simulation alpha 0.23.0
+# GHOST RALLY — Android simulation alpha 0.24.0
 
 Native Godot 4.4.1 project, Mobile/Vulkan renderer, Jolt and Terrain3D. Recovered from the public 0.10.0 source release and developed through locally verified milestones.
+
+## Changes in 0.24
+
+- Remove stacked speed attenuation from mobile steering and the base wheel angle. Provide 37° virtual road-wheel lock and faster rack motion; optional high-speed assistance now blends over 18–32 m/s using total speed so a slide cannot reopen full lock. Add per-wheel Ackermann angles and render the exact simulated angles. A faster critically damped thumb response remains monotonic without snap.
+- Add independently selectable analogue gas/brake joystick and a dedicated touch handbrake to all mobile steering modes. Three concurrent fingers can steer, brake and handbrake. Up/down travel maps to proportional gas/brake; release clears inputs. Settings retain pedal buttons as an alternative. Automatic throttle yields to any braking or handbrake.
+- Shorten braking slip relaxation, increase available service/rear handbrake torque, and accelerate ABS pressure recovery without bypassing tyre grip or load transfer. Holding service brake through a stop no longer launches reverse; release and repress at rest to reverse. At 72 km/h, dry-tarmac full-brake simulation stops in 21.29 m (240 Hz) / 21.15 m (720 Hz); gravel in 31.47 m. Partial pedals produce longer stops. Stock acceleration/top speed remain approximately 10.47 s and 184.5 km/h.
+- Replace faceted car-side normals with continuous panel normals, preserve separate cap normals, add arch trim and door/bonnet seams, correct wheel presentation, and rebalance glass/reflections/garage lighting. Neutral outdoor daylight and reduced distance haze restore contrast. Asphalt, agricultural ground and roofs gain dedicated original PBR shaders.
+- Build clipped pitched roofs for complex MV footprints, instead of flattening all non-rectangular tagged roofs; bounds and source vertices stay intact. Complex hips use a gabled approximation. Reshape broadleaf crowns with smaller leaves, inner-canopy shading and bounded near/far geometry. Cache shared tree variants to avoid repeated mesh generation.
+- All 15 required test groups plus 8 control/physics/graphics/import regressions pass. Phone FPS/physical sensor validation remains open; this is still a stylized procedural alpha, not a photorealistic vehicle/terrain asset set. See docs/VALIDATION-0.24.md.
 
 ## Changes in 0.23
 
