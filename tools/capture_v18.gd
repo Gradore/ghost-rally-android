@@ -39,6 +39,7 @@ func capture() -> void:
 		get_root().get_texture().get_image().save_png("../game/outputs/GhostRally-0.18.0-WP%d.png" % [wp+1])
 	# Close three-quarter inspection using the actual in-game vehicle.
 	game.start_race();game.set_physics_process(false)
+	game.countdown=0;game.countdown_label.visible=false
 	game.car.position=game.world.center_at(1200)+Vector3(0,0.07,0)
 	game.yaw=game.world.heading_at(1200);game.car.rotation.y=game.yaw
 	var facing := Vector3(sin(game.yaw),0,cos(game.yaw))
