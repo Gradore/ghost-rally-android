@@ -1,0 +1,13 @@
+# Grafikstand 0.12
+
+Die Zeichnung wurde nicht nachgezeichnet. Die geschlossene Brandenburg-Etappe verwendet zusammenhängende Originalwege aus OpenStreetMap. Google Maps wurde zum visuellen Vergleich des Startgebiets geöffnet; Google-Kartenbilder werden nicht als Spieltexturen verteilt. Start/Ziel: 51.5753876, 14.0098543. Die Geometrie bleibt etwa 16 km lang. Sieben Minuten sind ein Fahrzeit-Ziel, keine garantierte Rundendauer.
+
+Das Startgebiet enthält 81 kartierte Gebäudegrundrisse und 75 Steggeometrien aus dem OSM-Snapshot. Das Seehotel hat einen gesonderten Dachaufbau, Gauben, Fenster und Palmen; die Touristinformation ein Flachdach und Beschriftung. Fassadendetails, Pflaster, Poller und Vegetation wurden anhand der Fotos interpretiert. Nachbauten sind keine maßstabsgetreuen Architekturmodelle.
+
+Das Seeufer erhält ein aus Fotos interpretiertes Relief bis sechs Meter unter dem Fahrbahnniveau. **Keine Vermessungs-/DEM-Daten.** Höhen müssen vor einer Behauptung geographischer Genauigkeit durch echte Höhendaten ersetzt werden. Die ursprünglichen See-/Wegepositionen bleiben erhalten. Das Startstück auf Seestraße ist befestigt; Reifenmodell und sichtbarer Belag stimmen dort überein. Der restliche Schotterbelag bleibt eine gekennzeichnete Spieladaption; der tatsächliche See-Rundweg ist überwiegend befestigt.
+
+Weitere Änderungen: korrigierte Straßen-Flächenausrichtung, schmalere texturierte Bankette, texturierte Reifenspuren, dichteres Gras statt geometrischer Kegel, immer zur Kamera gerichtete Baum-Silhouetten, bewegte Wasser-Normalen, Wolkenhimmel, MSAA, weniger verdeckendes Renn-HUD und Ganganzeige. Fenster-/Steg-/Lampen-/Poller-Details sind in zehn Materialgruppen instanziert statt einzeln gezeichnet.
+
+Prüfgrenzen: Aufnahmen stammen aus dem tatsächlichen Godot-Spiel mit Mobile/Vulkan mit Desktop-Software-Rendering, nicht aus Bildgenerierung. Kein Android-Geräte-Benchmark. Pflanzen bleiben teils Billboards und das Auto ein prozeduraler Prototyp. Die gewünschte Referenzgrafik und Richard-Burns-Rally-Physik sind damit noch nicht erreicht. APK ist ein separat installierbarer Debug-Preview-Build und kein Play-Store-Release. Produktionssignatur und Store-Zugang fehlen weiterhin. Kein öffentlicher Push ohne die noch ausstehende Freigabe.
+
+Die aktuelle APK wählt Godot Mobile/Vulkan und Jolt. Terrain3D 1.0.1 rendert Brandenburg als vier LOD-Regionen. GPU-Staub und Clearcoat wurden ergänzt. Physik: Android 360 Hz (240-Hz-Preset vorhanden), Desktop 720 Hz; Pacejka, kombinierter Schlupf, einzelne Radrotationen, Drehmomentkurven, Turbo-Lag, LSD und Reifentemperatur/-druck. Noch kein 6-DOF-Chassis, kein nativer/C#-Kern und keine bestätigte VOC-Konformität.

@@ -1,0 +1,10 @@
+{
+  "_assumption": true,
+  "notes": "Gravel is a semi-empirical game approximation, not deformable-soil terramechanics. Tarmac longitudinal B/C/D/E from MathWorks typical-road table; lateral curves and other properties are assumptions.",
+  "tarmac_dry": {"longitudinal":[10,1.9,1,0.97],"lateral":[8.5,1.3,1,0.85],"rolling":0.013,"relaxation_m":0.30},
+  "gravel": {"longitudinal":[7,1.65,0.72,0.85],"lateral":[6,1.3,0.72,0.65],"rolling":0.025,"relaxation_m":0.45},
+  "grass": {"longitudinal":[5,1.65,0.40,0.8],"lateral":[4,1.3,0.40,0.7],"rolling":0.060,"relaxation_m":0.50},
+  "tarmac_wet": {"longitudinal":[12,2.3,0.82,1],"lateral":[8,1.3,0.78,0.9],"rolling":0.015,"relaxation_m":0.35},
+  "snow": {"longitudinal":[5,2,0.3,1],"lateral":[4,1.3,0.3,0.8],"rolling":0.050,"relaxation_m":0.55},
+  "ice": {"longitudinal":[4,2,0.1,1],"lateral":[3,1.3,0.1,0.8],"rolling":0.010,"relaxation_m":0.60}
+}

@@ -1,0 +1,8 @@
+.godot/
+*.apk
+*.aab
+*.idsig
+*.keystore
+*.jks
+.env
+outputs/

@@ -1,0 +1,83 @@
+{
+  "id": "kestrel_s1_evo",
+  "fictional": true,
+  "_assumption": true,
+  "notes": "Fictional S1 E2-inspired car. 1090 kg, 2.224 m wheelbase and 350 kW homologation target from supplied research. All chassis setup, ratios, sampled curve, tyre, diff and turbo dynamics below are assumptions pending verification.",
+  "mass_kg": 1090,
+  "wheelbase_m": 2.224,
+  "track_m": 1.48,
+  "cg_height_m": 0.5,
+  "front_fraction": 0.52,
+  "wheel_radius_m": 0.32,
+  "wheel_mass_kg": 22,
+  "wheel_inertia_kgm2": 1.45,
+  "ratios": [
+    3.0,
+    2.15,
+    1.65,
+    1.32,
+    1.1,
+    0.92
+  ],
+  "final_drive": 4.2,
+  "shift_up_rpm": 8000,
+  "redline_rpm": 8400,
+  "torque_curve_nm": [
+    [
+      900,
+      180
+    ],
+    [
+      2500,
+      300
+    ],
+    [
+      4000,
+      410
+    ],
+    [
+      5500,
+      480
+    ],
+    [
+      7000,
+      440
+    ],
+    [
+      8000,
+      417.8
+    ],
+    [
+      8400,
+      360
+    ]
+  ],
+  "turbo": true,
+  "turbo_spool_s": 0.6,
+  "turbo_decay_s": 0.25,
+  "turbo_gain": 0.55,
+  "diff": {
+    "type": "lsd",
+    "preload_nm": 65,
+    "power_lock": 0.45,
+    "coast_lock": 0.2,
+    "damping": 8
+  },
+  "center_preload_nm": 90,
+  "center_power_lock": 0.4,
+  "center_coast_lock": 0.15,
+  "tyre_pressure_pa": 200000,
+  "tyre_initial_temperature_k": 293.15,
+  "spring_npm": 50000,
+  "damper_nspm": 4500,
+  "awd_front_fraction": 0.45,
+  "suspension": {
+    "_assumption": true,
+    "spring_npm": 50000,
+    "damper_nspm": 4500,
+    "tyre_spring_npm": 180000,
+    "tyre_damper_nspm": 450,
+    "antiroll_npm": 10000,
+    "ride_height_m": 0.55
+  }
+}

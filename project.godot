@@ -1,0 +1,32 @@
+config_version=5
+
+[application]
+config/name="GHOST RALLY"
+run/main_scene="res://scenes/main.tscn"
+config/description="A fast rally time trial against your own ghost."
+config/icon="res://assets/icon.png"
+config/features=PackedStringArray("4.4", "Mobile")
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=0
+
+[rendering]
+anti_aliasing/quality/msaa_3d=1
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+textures/default_filters/use_nearest_mipmap_filter=false
+textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(0.035, 0.07, 0.085, 1)
+
+[physics]
+3d/physics_engine="Jolt Physics"
+common/physics_ticks_per_second=60
+
+[debug]
+file_logging/enable_file_logging=false
