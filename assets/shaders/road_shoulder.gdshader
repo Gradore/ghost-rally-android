@@ -2,6 +2,8 @@ shader_type spatial;
 render_mode cull_disabled;
 uniform sampler2D grass_tex:source_color,filter_linear_mipmap_anisotropic,repeat_enable;
 uniform sampler2D gravel_tex:source_color,filter_linear_mipmap_anisotropic,repeat_enable;
+uniform sampler2D grass_normal:hint_normal,filter_linear_mipmap_anisotropic,repeat_enable;
+uniform sampler2D gravel_normal:hint_normal,filter_linear_mipmap_anisotropic,repeat_enable;
 uniform float half_width=3.0;
 void fragment(){
  float lateral=abs(UV.x*4.0);
@@ -10,4 +12,6 @@ void fragment(){
  vec3 soil=texture(gravel_tex,UV*1.65).rgb*vec3(0.83,0.79,0.71);
  vec3 grass=texture(grass_tex,UV*0.5).rgb*vec3(0.66,0.72,0.57);
  ALBEDO=mix(soil,grass,blend);ROUGHNESS=0.98;
+ NORMAL_MAP=mix(texture(gravel_normal,UV*1.65).rgb,texture(grass_normal,UV*0.5).rgb,blend);
+ NORMAL_MAP_DEPTH=0.55*(1.0-smoothstep(35.0,110.0,length(VERTEX)));
 }

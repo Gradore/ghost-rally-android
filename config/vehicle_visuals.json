@@ -1,0 +1,11 @@
+{
+  "_assumption": true,
+  "notes": "Optional visual-only GLB slot. No user model has been supplied yet. Imported appearance never defines vehicle physics or collision.",
+  "lovo940voc": {
+    "scene_path": "res://assets/vehicles/lovo940voc.glb",
+    "target_length_m": 4.87,
+    "rotation_y_degrees": 0,
+    "wheel_nodes": {"front_left": "wheel_fl", "front_right": "wheel_fr", "rear_left": "wheel_rl", "rear_right": "wheel_rr"},
+    "max_triangles": 100000
+  }
+}

@@ -1,6 +1,7 @@
 extends CharacterBody3D
 class_name RallyCar
 
+var imported_visual := {}
 var body: Node3D
 var wheels: Array[Node3D] = []
 var wheel_spins: Array[Node3D] = [null,null,null,null]
@@ -185,6 +186,7 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 			_box(body,Vector3(width*0.64,0.0024,0.0024),Vector3(0,1.39-f*0.36,0.90+f*0.39),_mat(Color("283a32"),0.85))
 		_box(body,Vector3(width*0.86,0.008,0.009),Vector3(0,0.91,length*0.44),trim)
 	_merge_static_body()
+	if not ghost:imported_visual=preload("res://scripts/external_vehicle.gd").attach(self,car)
 	build_dust()
 
 func set_braking(enabled: bool) -> void:

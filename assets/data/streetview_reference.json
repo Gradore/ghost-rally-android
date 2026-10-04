@@ -1,0 +1,108 @@
+{
+  "checked": "2026-10-04",
+  "method": "Manual visual observation; original procedural materials, no copied imagery",
+  "coverage": "Four representative panoramas, not a survey or full-stage Street View reconstruction",
+  "views": [
+    {
+      "place": "Rostock Riekdahler Weg",
+      "lat": 54.0932351,
+      "lon": 12.1791515,
+      "panorama": "Z1d5OEuUNNQ_fLM1fYnVfg",
+      "imagery_date": "2022-07",
+      "provider": "Google Street View",
+      "observations": [
+        "grey interlocking sidewalk and pale curb",
+        "blue-grey pedestrian stream railing",
+        "weathered asphalt",
+        "brick and pale plaster residential facades"
+      ]
+    },
+    {
+      "place": "Rostock Rudolf-Tarnow-Straße / Köster-Klickermann-Weg",
+      "lat": 54.0859147,
+      "lon": 12.188619,
+      "panorama": "u2cpq_F3A2IyrrKKTea22g",
+      "imagery_date": "2022-07",
+      "provider": "Google Street View",
+      "observations": [
+        "paved sidewalk, grass verge, light plaster apartment buildings",
+        "construction scene is historical and is not reproduced as a current work site"
+      ]
+    },
+    {
+      "place": "Neuendorf Hauptstraße",
+      "lat": 54.0896122,
+      "lon": 12.2109007,
+      "panorama": "NQ4PKcl6EYEKxBpa3taaxA",
+      "imagery_date": "2023-09",
+      "provider": "Google Street View",
+      "observations": [
+        "red rendered gasthof facade",
+        "grey paved sidewalks",
+        "blue-grey framed bus shelter",
+        "mature broadleaf vegetation"
+      ]
+    },
+    {
+      "place": "Mönchhagen Ibenweg",
+      "lat": 54.1501663,
+      "lon": 12.222426,
+      "panorama": "K5z4F7YzNtGzQAsnb6jHGA",
+      "imagery_date": "2022-07",
+      "provider": "Google Street View",
+      "observations": [
+        "grass strips separate road and paved sidewalks",
+        "clipped hedges and young roadside trees",
+        "light plaster houses and red/dark pitched roofs"
+      ]
+    },
+    {
+      "place": "Großräschen Seestraße / IBA terraces",
+      "lat": 51.5752963,
+      "lon": 14.009979,
+      "panorama": "CIHM0ogKEICAgICEvJqNRA",
+      "imagery_date": "2018-11",
+      "provider": "Paul Toto, Google Maps user 360 panorama",
+      "observations": [
+        "grey cobbled roundabout apron",
+        "red-brown shore-side paving",
+        "short square bollards",
+        "slim poles with circular lamp heads",
+        "white hotel facade and red pitched roof",
+        "lake railing and terraced retaining walls"
+      ]
+    }
+  ],
+  "building_overrides": {
+    "685674670": {
+      "facade": "ab4143",
+      "reference": "Neuendorf Hauptstraße",
+      "_assumption": true
+    }
+  },
+  "details": {
+    "riekdahler_railing": {
+      "line": [
+        [
+          54.093269,
+          12.179131
+        ],
+        [
+          54.09318,
+          12.179265
+        ]
+      ],
+      "height": 1.05,
+      "_assumption": true
+    },
+    "neuendorf_shelter": {
+      "at": [
+        54.08969,
+        12.211037
+      ],
+      "heading_degrees": 20,
+      "_assumption": true
+    }
+  },
+  "_assumption": true
+}

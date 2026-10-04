@@ -1,6 +1,15 @@
-# GHOST RALLY — Android simulation alpha 0.22.0
+# GHOST RALLY — Android simulation alpha 0.23.0
 
 Native Godot 4.4.1 project, Mobile/Vulkan renderer, Jolt and Terrain3D. Recovered from the public 0.10.0 source release and developed through locally verified milestones.
+
+## Changes in 0.23
+
+- Inspect five Google Maps panoramas at the Rostock start, Köster-Klickermann-Weg, Neuendorf, Mönchhagen and Großräschen IBA terraces. Record dates, panorama IDs, observations and interpreted offsets in `assets/data/streetview_reference.json`. Author original paving, facade and street furniture; no Google imagery is bundled. These are representative points, not full-route coverage.
+- Preserve every road/footprint coordinate. Retain original OSM highway types and tags for context roads so footpaths/cycleways render at pedestrian width instead of 4.6 m. Add the observed Riekdahler sidewalk/railing and Neuendorf sidewalks/shelter, red Gasthof finish, grey cobbles, shore paving, square bollards and circular lamp heads at the Großräschen start. Roof rendering respects tagged shape/color and removes only redundant collinear outline points; complex pitched footprints still use a simplified roof cap.
+- Add optional ABS, traction control and speed-sensitive steering. Their on/off behavior is exercised in fixed-step braking, gravel acceleration and steering comparisons. A dedicated driving-aids tab persists each choice; handbrake locking remains available.
+- Improve the garage with a single static reflection capture, car-only key light, fill light, floor seams and soft contact shadow. Add manual view rotation and optional turntable. Render balanced races at 80% with FXAA, fluid at 65%, and detail at full resolution with 2x MSAA. Road and shoulder normal detail fades with distance.
+- Prepare a visual-only GLB vehicle slot with scale/orientation checks, polygon budget and four named articulated wheels. The native dynamics/collider are retained. An actual generated GLB fixture passes import and wheel-animation tests. No user Volvo/Meshy model has been supplied or bundled; see `docs/MODEL_IMPORT.md`.
+- Phone frame rate, physical tilt response and current full-route building appearance remain unverified. See `docs/VALIDATION-0.23.md` for results and limits.
 
 ## Changes in 0.22
 

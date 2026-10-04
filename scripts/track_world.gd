@@ -553,6 +553,8 @@ func build(data: Dictionary) -> void:
 	var shoulder := ShaderMaterial.new();shoulder.shader=load("res://assets/shaders/road_shoulder.gdshader")
 	shoulder.set_shader_parameter("grass_tex",load("res://assets/nature/forrest_ground_01_diff.jpg"))
 	shoulder.set_shader_parameter("gravel_tex",load("res://assets/nature/gravel_floor_diff.jpg"))
+	shoulder.set_shader_parameter("grass_normal",load("res://assets/nature/forrest_ground_01_nor_gl.jpg"))
+	shoulder.set_shader_parameter("gravel_normal",load("res://assets/nature/gravel_floor_nor_gl.jpg"))
 	shoulder.set_shader_parameter("half_width",road_width*0.5)
 	_add_strip(road,road_width+3.0,0.015,shoulder)
 	var driving_surface: Material = _textured_material("res://assets/textures/asphalt_v10.png" if asphalt else "res://assets/nature/gravel_floor_diff.jpg",Color(0.82,0.84,0.83) if asphalt else Color(0.92,0.86,0.75))

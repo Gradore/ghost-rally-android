@@ -152,7 +152,7 @@ func configure(track_world: Node3D) -> void:
 	world=track_world
 	plaster=mat("ece7dc"); glass=mat("263f4b",0.20); glass.metallic=0.4
 	metal=mat("8d9899",0.38)
-	stone=tile_material(Color("b3afa0"),Vector2(0.24,0.18),true)
+	stone=tile_material(Color("979d9c"),Vector2(0.14,0.14),true)
 	red_roof=tile_material(Color("9e4931"),Vector2(0.30,0.21),true)
 	var data: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://assets/data/start_area.json"))
 	for b in data.buildings:building(b)
@@ -166,10 +166,10 @@ func configure(track_world: Node3D) -> void:
 	polygon(circle,0.06,world._textured_material("res://assets/textures/asphalt_v10.png",Color.WHITE))
 	polygon(island,0.13,stone)
 	var plaza: Vector3= world.geo_to_world(51.57512,14.01014)
-	var paved := box(self,plaza+Vector3(0,0.025,0),Vector3(37,0.045,48),stone); paved.rotation.y=world.metric_rotation
+	var paved := box(self,plaza+Vector3(0,0.025,0),Vector3(37,0.045,48),tile_material(Color("a08e83"),Vector2(0.24,0.12),true)); paved.rotation.y=world.metric_rotation
 	for i in 12:
 		var point: Vector3=world.geo_to_world(51.57502+float(i)*0.000032,14.01036)
-		box(self,point+Vector3.UP*0.45,Vector3(0.30,0.9,0.30),mat("777c7b"))
+		box(self,point+Vector3.UP*0.30,Vector3(0.45,0.6,0.45),mat("aaa99f"))
 	for pier in data.piers:
 		for i in range(pier.size()-1):
 			var a := geo(pier[i],-5.70); var b := geo(pier[i+1],-5.70)
@@ -186,7 +186,8 @@ func configure(track_world: Node3D) -> void:
 	for ll in [[51.57535,14.01032],[51.57502,14.0097],[51.57565,14.00969],[51.5760,14.00972]]:
 		var p := geo(ll)
 		box(self,p+Vector3.UP*3.1,Vector3(0.10,6.2,0.10),metal)
-		box(self,p+Vector3.UP*6.2,Vector3(0.7,0.16,0.4),mat("c3c8bc"))
+		var head := MeshInstance3D.new();var disc := CylinderMesh.new();disc.top_radius=0.38;disc.bottom_radius=0.32;disc.height=0.16;disc.radial_segments=12
+		head.mesh=disc;head.material_override=mat("c3c8bc");head.position=p+Vector3.UP*6.2;head.visibility_range_end=180;add_child(head)
 	_landscaping()
 	_batch_details()
 

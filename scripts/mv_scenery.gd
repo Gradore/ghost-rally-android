@@ -8,6 +8,7 @@ var woods: Array[PackedVector2Array] = []
 var glass: StandardMaterial3D
 var roof_material: Material
 var wall_material: Material
+var street_reference := {}
 
 func _polygon(ll: Array) -> PackedVector2Array:
 	var p := PackedVector2Array()
@@ -30,6 +31,18 @@ func _tri(st: SurfaceTool, a: Vector3,b: Vector3,c: Vector3,normal: Vector3,colo
 func _quad(st: SurfaceTool,a: Vector3,b: Vector3,c: Vector3,d: Vector3,n: Vector3,col: Color) -> void:
 	_tri(st,a,b,c,n,col);_tri(st,c,b,d,n,col)
 
+func roof_outline(points: PackedVector2Array) -> PackedVector2Array:
+	var result := points.duplicate()
+	var changed := true
+	while changed and result.size()>4:
+		changed=false
+		for i in result.size():
+			var a := result[i]-result[(i-1+result.size())%result.size()]
+			var b := result[(i+1)%result.size()]-result[i]
+			if a.length()<0.02 or b.length()<0.02 or (a.dot(b)>0 and absf(a.cross(b))/maxf(a.length()*b.length(),0.001)<0.01):
+				result.remove_at(i);changed=true;break
+	return result
+
 func _building(data: Dictionary) -> void:
 	var p := _polygon(data.p)
 	if p.size()<3:return
@@ -38,8 +51,11 @@ func _building(data: Dictionary) -> void:
 	for v in p:mid+=v
 	mid/=float(p.size())
 	var center := Vector3(mid.x,0,mid.y)
+	var roof_points := roof_outline(p)
+	var roof_kind: String=data.tags.get("roof:shape",data.roof)
+	if roof_kind=="half-hipped":roof_kind="hipped"
 	var h := clampf(float(data.h),2.4,40)
-	if data.roof in ["gabled","hipped"] and data.tags.has("height") and p.size()==4:
+	if roof_kind in ["gabled","hipped"] and data.tags.has("height") and roof_points.size()==4:
 		h=maxf(2.0,h-minf(3.0,minf(p[0].distance_to(p[1]),p[1].distance_to(p[2]))*0.3))
 	var wall := _batch("wall",center,wall_material)
 	var windows := _batch("window",center,glass,220)
@@ -47,6 +63,8 @@ func _building(data: Dictionary) -> void:
 	var palette := [Color("e3d9c5"),Color("b57453"),Color("e0dcd2"),Color("c9bc9c"),Color("976a53")]
 	var color: Color=palette[int(data.id)%palette.size()]
 	if data.tags.has("building:colour"):color=Color.from_string(data.tags["building:colour"],color)
+	var appearance: Dictionary=street_reference.get("building_overrides",{}).get(str(data.id),{})
+	if appearance.has("facade"):color=Color(appearance.facade)
 	var levels := maxi(1,int(h/3.0))
 	var garage: bool=data.kind in ["garage","garages","shed","farm_auxiliary"]
 	var collision := SurfaceTool.new();collision.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -71,13 +89,15 @@ func _building(data: Dictionary) -> void:
 				_quad(wall,at-edge.normalized()*0.035-Vector3.UP*0.74+n*0.012,at-edge.normalized()*0.035+Vector3.UP*0.74+n*0.012,at+edge.normalized()*0.035-Vector3.UP*0.74+n*0.012,at+edge.normalized()*0.035+Vector3.UP*0.74+n*0.012,n,Color("ebe7de"))
 	if near_road:
 		var hit := StaticBody3D.new();var shape := CollisionShape3D.new();shape.shape=collision.commit().create_trimesh_shape();shape.shape.backface_collision=true;hit.add_child(shape);add_child(hit)
-	var roof_color := Color("9b5540") if data.roof in ["hipped","gabled"] else Color("626b68")
-	if data.roof in ["hipped","gabled"] and p.size()==4:
+	p=roof_points
+	var roof_color := Color("9b5540") if roof_kind in ["hipped","gabled"] else Color("626b68")
+	if data.tags.has("roof:colour"):roof_color=Color.from_string(data.tags["roof:colour"],roof_color)
+	if roof_kind in ["hipped","gabled"] and p.size()==4:
 		if p[0].distance_to(p[1])<p[1].distance_to(p[2]):p=PackedVector2Array([p[1],p[2],p[3],p[0]])
 		var a := Vector3(p[0].x,h,p[0].y);var b := Vector3(p[1].x,h,p[1].y);var c := Vector3(p[2].x,h,p[2].y);var d := Vector3(p[3].x,h,p[3].y)
-		var near := (a+d)*0.5;var far := (b+c)*0.5;var axis := (far-near).normalized();var inset := 0.0 if data.roof=="gabled" else minf(a.distance_to(d)*0.4,near.distance_to(far)*0.4)
+		var near := (a+d)*0.5;var far := (b+c)*0.5;var axis := (far-near).normalized();var inset := 0.0 if roof_kind=="gabled" else minf(a.distance_to(d)*0.4,near.distance_to(far)*0.4)
 		var r0 := near+axis*inset+Vector3.UP*minf(3,a.distance_to(d)*0.3);var r1 := far-axis*inset+Vector3.UP*minf(3,a.distance_to(d)*0.3)
-		if data.roof=="gabled":
+		if roof_kind=="gabled":
 			_tri(wall,d,a,r0,(near-far).normalized(),color);_tri(wall,b,c,r1,(far-near).normalized(),color)
 		for t in [[a,b,r0],[b,r1,r0],[b,c,r1],[c,d,r1],[d,r0,r1],[d,a,r0]]:
 			var normal: Vector3=(t[1]-t[0]).cross(t[2]-t[0]).normalized()
@@ -97,6 +117,7 @@ func _ground(p: PackedVector2Array,mat: Material,y: float) -> void:
 func configure(track_world: TrackWorld) -> void:
 	world=track_world
 	var data: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://assets/data/mv_rostock.json"))
+	street_reference=JSON.parse_string(FileAccess.get_file_as_string("res://assets/data/streetview_reference.json"))
 	var facade_shader := Shader.new()
 	facade_shader.code="""shader_type spatial; render_mode cull_disabled;
 void fragment(){
@@ -125,14 +146,20 @@ void fragment(){
 		_ground(p,mat,-0.06)
 	# Local connecting streets, including the bend, driveway junctions and farm access roads.
 	var paved: Material=world._textured_material("res://assets/textures/asphalt_v10.png",Color("929b98"))
+	var paving := ShaderMaterial.new();paving.shader=preload("res://assets/shaders/street_paving.gdshader")
 	var dirt: Material=world._textured_material("res://assets/nature/gravel_floor_diff.jpg",Color("b4a586"))
 	for road in data.roads:
 		var pts := _polygon(road.p)
+		var footway: bool=road.get("highway","") in ["footway","path","cycleway","pedestrian","steps"]
+		var half_width := 0.75 if footway else 2.3
 		for i in range(pts.size()-1):
 			var a := Vector3(pts[i].x,0.008,pts[i].y);var b := Vector3(pts[i+1].x,0.008,pts[i+1].y)
-			var n := Vector3(-(b-a).z,0,(b-a).x).normalized()*2.3
-			var st := _batch("dirtroad" if road.surface in ["dirt","ground","gravel","compacted","grass"] else "street",(a+b)*0.5,dirt if road.surface in ["dirt","ground","gravel","compacted","grass"] else paved,600)
+			var n := Vector3(-(b-a).z,0,(b-a).x).normalized()*half_width
+			var unpaved: bool=road.surface in ["dirt","ground","gravel","compacted","grass"]
+			var is_paving: bool=road.surface=="paving_stones"
+			var st := _batch("streetPaving" if is_paving else ("dirtroad" if unpaved else "street"),(a+b)*0.5,paving if is_paving else (dirt if unpaved else paved),600)
 			_quad(st,a-n,a+n,b-n,b+n,Vector3.UP,Color.WHITE)
+	preload("res://scripts/street_details.gd").new().build(self,world,data,street_reference)
 	var rail_mat: Material=world._material(Color("697376"),0.42)
 	var ballast: Material=world._textured_material("res://assets/nature/gravel_floor_diff.jpg",Color("777970"))
 	for ll in data.rails:

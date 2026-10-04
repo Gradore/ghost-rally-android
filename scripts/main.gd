@@ -352,6 +352,7 @@ func ensure_race_world() -> void:
 		car.position=world.center_at(4)+Vector3.UP*0.07
 		yaw=world.heading_at(4);car.rotation.y=yaw
 		velocity=Vector2.ZERO;dynamics.reset();mobile_steering.reset()
+	apply_graphics()
 
 func display_showroom() -> void:
 	if is_instance_valid(world): world.hide()
@@ -361,7 +362,7 @@ func display_showroom() -> void:
 		showroom=preload("res://scripts/garage_world.gd").new()
 		add_child(showroom)
 	showroom.show()
-	sun.light_energy=0.42
+	sun.light_energy=0.18
 	showroom.select_car(Data.CARS[active_car],int(save.livery[active_car]))
 	camera.position=Vector3(5.6,2.35,5.6)
 	camera.look_at(Vector3(1.25,0.85,0),Vector3.UP)
@@ -370,9 +371,11 @@ func display_showroom() -> void:
 
 func apply_graphics() -> void:
 	var economy: bool=save.get("graphics","balanced")=="economy"
+	var detail: bool=save.get("graphics","balanced")=="detail"
 	var in_showroom := is_instance_valid(showroom) and showroom.visible
-	get_viewport().scaling_3d_scale=1.0 if in_showroom else 0.65 if economy else 0.80
-	get_viewport().msaa_3d=Viewport.MSAA_2X if in_showroom else Viewport.MSAA_DISABLED
+	get_viewport().scaling_3d_scale=1.0 if in_showroom or detail else 0.65 if economy else 0.80
+	get_viewport().msaa_3d=Viewport.MSAA_2X if in_showroom or detail else Viewport.MSAA_DISABLED
+	get_viewport().screen_space_aa=Viewport.SCREEN_SPACE_AA_FXAA if not economy and not in_showroom and not detail else Viewport.SCREEN_SPACE_AA_DISABLED
 	sun.shadow_enabled=not economy
 	if OS.has_feature("android"): dynamics.set_tick_hz(240)
 
@@ -477,6 +480,9 @@ func show_garage() -> void:
 		_label(card,"%+.2f" % float(save.setup[active_car][key]),17,Color("f4c64f"),Vector2(244,yy+8),Vector2(66,28))
 		_button(card,"+",Vector2(323,yy),Vector2(44,42),func(k=key): change_setup(k,0.25))
 	_label(ui,current.name,38,Color.WHITE,Vector2(44,533),Vector2(760,55),true)
+	_button(ui,"↶",Vector2(320,627),Vector2(62,59),func():showroom.rotate_view(-0.35))
+	_button(ui,"360°",Vector2(394,627),Vector2(110,59),func():showroom.turntable=not showroom.turntable)
+	_button(ui,"↷",Vector2(516,627),Vector2(62,59),func():showroom.rotate_view(0.35))
 	_button(ui,"← HAUPTMENÜ",Vector2(40,627),Vector2(240,59),func(): show_home())
 	_button(ui,"MIT DIESEM AUTO FAHREN  →",Vector2(849,627),Vector2(389,59),func(): show_pre_race(),true)
 
@@ -570,8 +576,8 @@ func show_settings() -> void:
 	var veil := ColorRect.new();veil.color=Color(0.015,0.025,0.035,0.78);veil.set_anchors_preset(Control.PRESET_FULL_RECT);ui.add_child(veil)
 	var card := _card(ui,Vector2(327,45),Vector2(626,630))
 	_label(card,"EINSTELLUNGEN",36,Color.WHITE,Vector2(32,22),Vector2(560,50),true)
-	for i in 3:
-		_button(card,["FAHREN","GRAFIK","KAMERA"][i],Vector2(32+i*185,88),Vector2(175,45),func(tab=i):settings_tab=tab;show_settings(),settings_tab==i)
+	for i in 4:
+		_button(card,["FAHREN","GRAFIK","KAMERA","FAHRHILFEN"][i],Vector2(32+i*140,88),Vector2(130,45),func(tab=i):settings_tab=tab;show_settings(),settings_tab==i)
 	if settings_tab==0:
 		for i in 3:
 			var mode: String=["wheel","tilt","buttons"][i]
@@ -584,15 +590,21 @@ func show_settings() -> void:
 		_label(card,"Daumen nach links = links. Handy im Querformat neigen.",17,Color("aac7c3"),Vector2(32,498),Vector2(565,40))
 	elif settings_tab==1:
 		_label(card,"DARSTELLUNG",22,Color.WHITE,Vector2(32,170),Vector2(550,35),true)
-		for i in 2:
-			var mode: String=["economy","balanced"][i]
-			_button(card,["FLÜSSIG","AUSGEWOGEN"][i],Vector2(32+i*280,228),Vector2(270,60),func():save.graphics=mode;write_save();apply_graphics();show_settings(),save.get("graphics","balanced")==mode)
-		_label(card,"FLÜSSIG: 65 % 3D-Auflösung, ohne Echtzeitschatten.\nAUSGEWOGEN: 80 % 3D-Auflösung, kurze Schatten.\nMenüs bleiben in voller Bildschirmauflösung.",20,Color("aac7c3"),Vector2(32,330),Vector2(550,130))
-	else:
+		for i in 3:
+			var mode: String=["economy","balanced","detail"][i]
+			_button(card,["FLÜSSIG","AUSGEWOGEN","DETAIL"][i],Vector2(32+i*185,228),Vector2(175,60),func():save.graphics=mode;write_save();apply_graphics();show_settings(),save.get("graphics","balanced")==mode)
+		_label(card,"FLÜSSIG: 65 % 3D-Auflösung, ohne Echtzeitschatten.\nAUSGEWOGEN: 80 % Auflösung, schnelle Kantenglättung.\nDETAIL: volle 3D-Auflösung, 2× Kantenglättung.\nMenüs bleiben in voller Bildschirmauflösung.",20,Color("aac7c3"),Vector2(32,330),Vector2(550,130))
+	elif settings_tab==2:
 		setting_row(card,"VERFOLGUNG: ABSTAND (M)","camera_distance",170,0.5,4.0,12.0)
 		setting_row(card,"VERFOLGUNG: HÖHE (M)","camera_height",242,0.2,1.5,5.0)
 		setting_row(card,"SICHTFELD (GRAD)","camera_fov",314,5.0,50.0,85.0)
 		_label(card,"Im Rennen zwischen Cockpit und Verfolgung wechseln.\nEinstellungen werden gespeichert.",20,Color("aac7c3"),Vector2(32,416),Vector2(550,85))
+	else:
+		for i in 3:
+			var key: String=["abs_assist","traction_assist","steering_assist"][i]
+			_label(card,["ABS / BLOCKIERSCHUTZ","TRAKTIONSKONTROLLE","LENKHILFE BEI HOHEM TEMPO"][i],19,Color.WHITE,Vector2(32,178+i*82),Vector2(390,32))
+			_button(card,"AN" if save.get(key,true) else "AUS",Vector2(440,170+i*82),Vector2(142,45),func(k=key):save[k]=not save.get(k,true);write_save();show_settings(),save.get(key,true))
+		_label(card,"Hilfen erleichtern die Kontrolle. Für freies Driften\nTraktionskontrolle und Lenkhilfe ausschalten.\nDie Handbremse löst weiterhin die Hinterräder.",19,Color("aac7c3"),Vector2(32,430),Vector2(560,90))
 	_button(card,"KARTENDATEN UND LIZENZEN",Vector2(32,541),Vector2(270,45),func():show_credits())
 	_button(card,"FERTIG",Vector2(322,541),Vector2(260,45),func():close_settings(),true)
 
@@ -898,7 +910,10 @@ func _physics_process(delta: float) -> void:
 func update_vehicle(delta: float) -> void:
 	impact_cooldown=maxf(0.0,impact_cooldown-delta)
 	var cfg: Dictionary=Data.CARS[active_car]
-	var set: Dictionary=save.setup[active_car]
+	var set: Dictionary=save.setup[active_car].duplicate()
+	set.abs_assist=save.get("abs_assist",true)
+	set.traction_assist=save.get("traction_assist",true)
+	set.steering_assist=save.get("steering_assist",true)
 	var upgrades: Dictionary=save.upgrades[active_car]
 	var longitudinal := velocity.dot(Vector2(-sin(yaw),-cos(yaw)))
 	if brake<0.1 or throttle>0.1: reverse_engaged=false

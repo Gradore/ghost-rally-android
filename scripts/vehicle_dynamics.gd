@@ -54,7 +54,7 @@ func _configure(cfg: Dictionary, speed: float) -> void:
 	surfaces=JSON.parse_string(FileAccess.get_file_as_string("res://config/surfaces/surfaces.json"))
 	wheels.clear()
 	for i in 4:
-		wheels.append({"omega":speed/float(vehicle.wheel_radius_m),"spin":0.0,"load":0.0,"kappa":0.0,"alpha":0.0,
+		wheels.append({"abs_pressure":1.0,"omega":speed/float(vehicle.wheel_radius_m),"spin":0.0,"load":0.0,"kappa":0.0,"alpha":0.0,
 			"force":Vector2.ZERO,"temperature_k":float(vehicle.tyre_initial_temperature_k),"pressure_pa":float(vehicle.tyre_pressure_pa),
 			"mass_kg":float(vehicle.wheel_mass_kg),"inertia_kgm2":float(vehicle.wheel_inertia_kgm2)})
 	suspension.configure(vehicle,wheel_ground)
@@ -89,7 +89,13 @@ func _tick(velocity: Vector2,yaw: float,steering: float,throttle: float,brake: f
 	var mass := float(vehicle.mass_kg);var wb := float(vehicle.wheelbase_m);var track := float(vehicle.track_m)
 	var fraction := float(vehicle.front_fraction);var a := wb*(1-fraction);var b := wb*fraction
 	var radius := float(vehicle.wheel_radius_m)
-	steering_angle=move_toward(steering_angle,steering*0.55/(1+absf(u)*0.018),tick_dt*2.6)
+	var target_angle := steering*0.55/(1+absf(u)*0.018)
+	if setup.get("steering_assist",false) and absf(u)>10.0 and not handbrake:
+		# ASSUMPTION: controllable range near available lateral acceleration, not a yaw force.
+		var lateral_limit := 6.5 if gravel else 9.5
+		var range_angle := atan(wb*lateral_limit*1.35/(u*u))
+		target_angle=steering*minf(absf(target_angle)/maxf(absf(steering),0.001),range_angle)
+	steering_angle=move_toward(steering_angle,target_angle,tick_dt*2.6)
 	var surface: Dictionary=surfaces["grass" if not on_road else "gravel" if gravel else "tarmac_dry"]
 	var locked_spec := bool(cfg.get("voc",false))
 	var upgrade_grip := 1.0 if locked_spec else 1.0+float(upgrades.handling)*0.025
@@ -111,6 +117,9 @@ func _tick(velocity: Vector2,yaw: float,steering: float,throttle: float,brake: f
 	if not locked_spec:engine_torque*=1+float(upgrades.engine)*0.09
 	engine_torque*=(1+float(vehicle.turbo_gain)*turbo_boost)/(1+float(vehicle.turbo_gain))
 	var drive := (throttle*engine_torque-(1-throttle)*18.0*clampf(u,0,1))*ratio*float(vehicle.get("driveline_efficiency",0.87))
+	if setup.get("traction_assist",false) and not reverse and absf(u)>2.0:
+		var drive_slip := maxf(0.0,(absf(driven_omega)*radius-absf(u))/maxf(absf(u),3.0))
+		drive*=lerpf(1.0,0.22,smoothstep(0.18,0.60,drive_slip))
 	if shift_remaining>0:drive*=0.05
 	if rpm>float(vehicle.redline_rpm):drive=0
 	if reverse:drive=-brake*engine_torque*float(ratios[0])*final_drive*0.60
@@ -146,6 +155,11 @@ func _tick(velocity: Vector2,yaw: float,steering: float,throttle: float,brake: f
 		var force := Tyre.combined(fx,fy,load*float(surface.longitudinal[2])*grip)
 		wheel.force=force
 		var brake_torque: float= (0 if reverse else brake)*mass*12*radius*(bias if front else 1-bias)*0.5
+		if setup.get("abs_assist",false) and not reverse and tyre_u>5.0 and brake>0.01 and load>1.0:
+			var pressure_target := 0.10 if kappa< -0.16 else 1.0
+			wheel.abs_pressure=move_toward(float(wheel.abs_pressure),pressure_target,tick_dt*(25.0 if pressure_target<0.5 else 4.0))
+			brake_torque*=float(wheel.abs_pressure)
+		else:wheel.abs_pressure=1.0
 		if handbrake and not front:brake_torque+=1800
 		var omega_before := float(wheel.omega)
 		var brake_direction := signf(omega_before) if absf(omega_before)>0.01 else signf(tyre_u)

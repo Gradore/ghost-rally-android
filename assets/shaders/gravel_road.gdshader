@@ -22,6 +22,6 @@ void fragment() {
  ALBEDO *= mix(0.92,1.04,fine_patch);
  ALBEDO *= mix(vec3(1.0),vec3(0.77,0.79,0.65),edge*0.45);
  NORMAL_MAP = texture(normal_tex, UV * 1.65).rgb;
- NORMAL_MAP_DEPTH = 0.85;
+ NORMAL_MAP_DEPTH = mix(0.90,0.48,rut)*(1.0-smoothstep(45.0,140.0,length(VERTEX)));
  ROUGHNESS = mix(0.96,0.88,rut);
 }

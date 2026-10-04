@@ -89,7 +89,7 @@ for wid,(ns,t,v) in ways.items():
   buildings.append({'id':wid,'version':v,'p':p[:-1],'h':h,'kind':t['building'],'roof':shape if shape in ['gabled','hipped'] and len(p)==5 else 'flat','tags':t,'_assumption':True,'height_assumption':'height' not in t and 'building:levels' not in t,'roof_assumption':'roof:shape' not in t})
  if ns[0]==ns[-1] and (t.get('landuse') in ['farmland','meadow','forest','orchard','grass','residential'] or t.get('natural') in ['wood','water','scrub']) and (near(center,600) or any(near(x,250) for x in p)):
   land.append({'id':wid,'p':p[:-1],'kind':t.get('landuse',t.get('natural'))})
- if 'highway' in t and any(near(x,200) for x in p):roads.append({'p':p,'k':'street','surface':t.get('surface','unknown'),'id':wid})
+ if 'highway' in t and any(near(x,200) for x in p):roads.append({'p':p,'k':'street','highway':t['highway'],'tags':t,'surface':t.get('surface','unknown'),'id':wid})
  if t.get('natural')=='tree_row' and any(near(x,180) for x in p):tree_rows.append(p)
  if t.get('waterway') in ['stream','river','ditch'] and any(near(x,250) for x in p):streams.append(p)
  if t.get('railway')=='rail' and any(near(x,300) for x in p):rails.append(p)
