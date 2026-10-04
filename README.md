@@ -1,6 +1,13 @@
-# GHOST RALLY — Android simulation alpha 0.16.0
+# GHOST RALLY — Android simulation alpha 0.17.0
 
 Native Godot 4.4.1 project, Mobile/Vulkan renderer, Jolt and Terrain3D. Recovered from the public 0.10.0 source release and developed through locally verified milestones.
+
+## Changes in 0.17
+
+- Closer, lower chase camera gives the vehicle more screen presence while retaining the existing terrain clearance guard.
+- Procedural metallic paint and lower-panel grime, clearcoat/roughness variation, subtler rear glass heating wires, authored plate lettering and braking-responsive rear lamps. Roof retains the plain paint material to avoid applying local-space lower-panel grime there.
+- Stronger gravel tyre tracks and normal detail, darker/greener lake terrain tint, lower warm sun, spatial fern fronds and faceted irregular stone meshes instead of round placeholder rocks. Decorative foliage does not add colliders or consume the collision-placement RNG.
+- Twelve test groups passed; the map regression was rerun after correcting the paint shader's clearcoat property. Graphics captured with Mobile/Vulkan; physical phone FPS remains unmeasured.
 
 ## Changes in 0.16
 
@@ -46,7 +53,7 @@ godot --headless --export-debug "Android Preview" ../outputs/GhostRally-0.14.0-p
 
 AGENTS.md lists the complete test suite. docs/VALIDATION-0.14.md records acceptance, limitations and the Dummy-audio shutdown warning. Captures come from actual Mobile/Vulkan rendering with desktop software rendering; they are not phone benchmarks.
 
-Preview package: com.ghostrally.racer.preview, versionCode 16. It retains the previous debug signer and can update the previous preview. Production signing material is absent; do not replace it. No production AAB or Play Store submission is claimed.
+Preview package: com.ghostrally.racer.preview, versionCode 17. It retains the previous debug signer and can update the previous preview. Production signing material is absent; do not replace it. No production AAB or Play Store submission is claimed.
 
 ## Remaining work and credits
 

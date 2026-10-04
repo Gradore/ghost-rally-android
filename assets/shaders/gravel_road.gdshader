@@ -11,10 +11,10 @@ void fragment() {
  float edge = smoothstep(road_half_width - 0.8, road_half_width + 0.05, abs(across));
  vec3 detail = texture(albedo_tex, UV * 1.65).rgb;
  vec3 macro = texture(albedo_tex, UV * 0.11 + vec2(0.23, 0.47)).rgb;
- ALBEDO = detail * mix(vec3(0.84,0.80,0.72), vec3(0.69,0.66,0.59), rut * 0.45);
+ ALBEDO = detail * mix(vec3(0.84,0.80,0.72), vec3(0.69,0.66,0.59), rut * 0.70);
  ALBEDO *= mix(0.9, 1.1, macro.r);
  ALBEDO *= mix(vec3(1.0),vec3(0.77,0.79,0.65),edge*0.45);
  NORMAL_MAP = texture(normal_tex, UV * 1.65).rgb;
- NORMAL_MAP_DEPTH = 0.55;
+ NORMAL_MAP_DEPTH = 0.85;
  ROUGHNESS = mix(0.96,0.88,rut);
 }

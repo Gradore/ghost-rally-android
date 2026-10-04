@@ -11,7 +11,7 @@ static func build(parent: Node3D) -> Node3D:
 	grass.set("id",0);grass.set("name","Lausitz grass")
 	grass.set("albedo_texture",texture("res://assets/nature/forrest_ground_01_diff.jpg"))
 	grass.set("normal_texture",texture("res://assets/nature/forrest_ground_01_nor_gl.jpg"))
-	grass.set("albedo_color",Color(0.92,0.95,0.87));grass.set("roughness",0.8);grass.set("uv_scale",0.125)
+	grass.set("albedo_color",Color(0.74,0.83,0.70));grass.set("roughness",0.8);grass.set("uv_scale",0.125)
 	assets.call("set_texture",0,grass)
 	var soil: Resource=ClassDB.instantiate("Terrain3DTextureAsset")
 	soil.set("id",1);soil.set("name","Lausitz gravel bank");soil.set("albedo_texture",texture("res://assets/nature/gravel_floor_diff.jpg"))

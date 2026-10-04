@@ -6,6 +6,7 @@ var wheels: Array[Node3D] = []
 var wheel_spins: Array[Node3D] = [null,null,null,null]
 var material: StandardMaterial3D
 var ghost := false
+var rear_lamps: StandardMaterial3D
 var dust: GPUParticles3D
 
 func _mat(color: Color, rough: float = 0.65, metallic: float = 0.0, transparent: bool = false) -> StandardMaterial3D:
@@ -65,6 +66,12 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 	material.clearcoat=0.80
 	material.clearcoat_roughness=0.26
 	material.cull_mode=BaseMaterial3D.CULL_DISABLED
+	var body_paint: Material=material
+	if not ghost:
+		var paint_shader := ShaderMaterial.new();paint_shader.shader=load("res://assets/shaders/rally_paint.gdshader")
+		paint_shader.set_shader_parameter("paint_color",paint);body_paint=paint_shader
+	rear_lamps=_mat(Color("a82015"),0.24,0.08,ghost)
+	rear_lamps.emission_enabled=not ghost;rear_lamps.emission=Color("ed2814");rear_lamps.emission_energy_multiplier=0.10
 	var trim := _mat(Color(0.1,0.16,0.18,0.3) if ghost else Color("12171b"),0.8,0.05,ghost)
 	var glass := _mat(Color(0.15,0.35,0.45,0.3) if ghost else Color("263a44"),0.42,0.0,ghost)
 	glass.metallic=0.12
@@ -90,7 +97,7 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 		# Raised side sill around the wheel centers forms the wheel openings.
 		if absf(absf(z)-wheelbase*0.5)<radius*1.10:bottom=0.68
 		rings.append([Vector3(-half*0.94,bottom,z),Vector3(-half,bottom+0.08,z),Vector3(-half,top-0.09,z),Vector3(-half*0.92,top,z),Vector3(half*0.92,top,z),Vector3(half,top-0.09,z),Vector3(half,bottom+0.08,z),Vector3(half*0.94,bottom,z)])
-	_loft(body,rings,material)
+	_loft(body,rings,body_paint)
 	var cabin := []
 	for spec in [[-0.82,0.91,width*0.43],[-0.28,1.44,width*0.36],[0.83,1.44,width*0.36],[1.38,0.94,width*0.43]]:
 		var z: float=spec[0] if voc else float(spec[0])*0.86
@@ -146,7 +153,7 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 		_box(body,Vector3(0.018,0.17,0.022),Vector3((bar-3)*0.075,0.74,-length*0.5-0.04),chrome)
 	for side in [-1.0,1.0]:
 		_box(body,Vector3(0.38,0.17,0.03),Vector3(side*width*0.35,0.75,-length*0.5-0.025),_mat(Color("f5edd5"),0.18,0.1,ghost))
-		_box(body,Vector3(0.26,0.19,0.03),Vector3(side*width*0.36,0.77,length*0.5+0.025),_mat(Color("b62621"),0.19,0.1,ghost))
+		_box(body,Vector3(0.26,0.19,0.03),Vector3(side*width*0.36,0.77,length*0.5+0.025),rear_lamps)
 	if not voc and car.drive=="AWD":
 		_box(body,Vector3(width*0.86,0.07,0.24),Vector3(0,1.16,length*0.44),material)
 		for side in [-1.0,1.0]:_box(body,Vector3(0.045,0.28,0.10),Vector3(side*width*0.31,1.03,length*0.44),trim)
@@ -156,7 +163,7 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 		var badge := Label3D.new();badge.text="LOVO 940";badge.font_size=32;badge.pixel_size=0.0035
 		badge.position=Vector3(-0.43,0.88,length*0.5+0.04);badge.rotation.y=0;body.add_child(badge)
 		for side in [-1.0,1.0]:
-			_box(body,Vector3(0.16,0.33,0.055),Vector3(side*width*0.42,0.72,length*0.5+0.038),_mat(Color("a92b24"),0.38))
+			_box(body,Vector3(0.16,0.33,0.055),Vector3(side*width*0.42,0.72,length*0.5+0.038),rear_lamps)
 			_box(body,Vector3(0.16,0.085,0.06),Vector3(side*width*0.42,0.77,length*0.5+0.068),_mat(Color("ddcfbb"),0.4))
 			for z in [-0.65,0.35,1.0]:_box(body,Vector3(0.013,0.22,0.018),Vector3(side*width*0.504,0.78,z),trim)
 	if not ghost:
@@ -170,7 +177,18 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 		var pipe := CylinderMesh.new();pipe.top_radius=0.037;pipe.bottom_radius=0.037;pipe.height=0.20;pipe.radial_segments=12
 		var exhaust := MeshInstance3D.new();exhaust.mesh=pipe;exhaust.material_override=chrome
 		exhaust.rotation.x=PI/2;exhaust.position=Vector3(-width*0.31,0.33,length*0.5);body.add_child(exhaust)
+	if not ghost:
+		var plate := Label3D.new();plate.text="LOVO · 69" if voc else "GHOST · 27";plate.font_size=40;plate.pixel_size=0.0015
+		plate.modulate=Color("17221f");plate.position=Vector3(0,0.735,length*0.5+0.057);body.add_child(plate)
+		# Rear glass heating wires and trunk gaps catch close chase-camera views.
+		for wire in 7:
+			var f := float(wire)/8.0
+			_box(body,Vector3(width*0.64,0.0024,0.0024),Vector3(0,1.39-f*0.36,0.90+f*0.39),_mat(Color("283a32"),0.85))
+		_box(body,Vector3(width*0.86,0.008,0.009),Vector3(0,0.91,length*0.44),trim)
 	build_dust()
+
+func set_braking(enabled: bool) -> void:
+	if rear_lamps!=null and not ghost:rear_lamps.emission_energy_multiplier=1.4 if enabled else 0.10
 
 func animate_car(steer: float, slip: float, speed: float, delta: float) -> void:
 	for wheel in wheels:wheel.rotation.y=lerpf(wheel.rotation.y,-steer*0.45/(1.0+speed*0.018),minf(1.0,delta*10.0))

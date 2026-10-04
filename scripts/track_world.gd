@@ -637,7 +637,7 @@ func build(data: Dictionary) -> void:
 	forest_batch.plant_mesh(scenery,oak_a,oak_cards,"far_oaks",0,110)
 	forest_batch.plant_mesh(scenery,spatial_oaks,forest_batch.broadleaf_mesh(),"spatial_oaks",125)
 
-	var rock := SphereMesh.new(); rock.radial_segments=6; rock.rings=3
+	var rock := _stone_mesh()
 	_multimesh(rock,_material(Color("77776d")),rocks)
 	_multimesh(rock,_material(Color("35614a") if track.place=="NORDIC FOREST" else Color("63735a")),bushes)
 	var tuft_mesh := _grass_mesh()
@@ -646,6 +646,11 @@ func build(data: Dictionary) -> void:
 	var grass_batch=preload("res://scripts/render/forest.gd")
 	grass_batch.plant_mesh(scenery,grass_dark,tuft_mesh,"verge_grass",85)
 	grass_batch.plant_mesh(scenery,grass_light,tuft_mesh,"verge_grass",85)
+	var ferns: Array[Transform3D]=[]
+	for i in range(0,grass_dark.size(),23):
+		var t: Transform3D=grass_dark[i];t.basis=t.basis.scaled(Vector3.ONE*1.45);ferns.append(t)
+	var fern := _fern_mesh();fern.surface_set_material(0,grass_mat)
+	grass_batch.plant_mesh(scenery,ferns,fern,"verge_grass",65)
 	var post_mesh := BoxMesh.new()
 	_multimesh(post_mesh,_material(Color("e1dbc1")),posts)
 	_multimesh(post_mesh,_material(Color("d39d5a"),0.55,Color("6b4322")),reflectors)
@@ -725,3 +730,36 @@ func _road_relief_sample(progress: float) -> float:
 	if not gravel_at(progress):return 0.0
 	var fade := clampf((progress+float(track.get("source_offset",0))-270)/25,0,1) if track.state_code=="12" else clampf(progress/25,0,1)
 	return (sin(progress*TAU/23)*0.023+sin(progress*TAU/41)*0.012)*fade
+
+func _fern_mesh() -> ArrayMesh:
+	var st := SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for frond in 7:
+		var a := frond*2.39996
+		var axis := Vector3(cos(a),0,sin(a));var side := Vector3(-sin(a),0,cos(a))
+		for i in range(1,9):
+			var along := float(i)/9
+			var base := axis*along*0.50+Vector3.UP*(sin(along*PI)*0.28+0.04)
+			var breadth := sin(along*PI)*0.11
+			for sign in [-1.0,1.0]:
+				var leaf: Vector3 = base+side*sign*breadth+axis*0.04
+				for pair in [[base-axis*0.035,0.0],[leaf,1.0],[base+axis*0.045,0.0]]:
+					st.set_color(Color(0.70,0.97,0.60));st.set_uv(Vector2(0,pair[1]));st.add_vertex(pair[0])
+	st.generate_normals();return st.commit()
+
+func _stone_mesh() -> ArrayMesh:
+	var st := SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rings: Array[PackedVector3Array]=[]
+	for level in 3:
+		var ring := PackedVector3Array()
+		for i in 7:
+			var angle := float(i)*TAU/7+level*0.18
+			var radius := (0.47 if level==1 else 0.28)*(0.86+float((i*3+level)%5)*0.075)
+			ring.append(Vector3(cos(angle)*radius,(level-1)*0.35,sin(angle)*radius))
+		rings.append(ring)
+	for level in 2:
+		for i in 7:
+			var next := (i+1)%7
+			for vertex in [rings[level][i],rings[level+1][i],rings[level][next],rings[level][next],rings[level+1][i],rings[level+1][next]]:st.add_vertex(vertex)
+	for i in 7:
+		for vertex in [Vector3(0,0.38,0),rings[2][i],rings[2][(i+1)%7]]:st.add_vertex(vertex)
+	st.generate_normals();return st.commit()

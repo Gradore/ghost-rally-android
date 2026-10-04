@@ -172,8 +172,8 @@ func build_scene() -> void:
 	sky.environment = environment
 	add_child(sky)
 	sun = DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-28,35,0)
-	sun.light_color = Color("ffe5bc")
+	sun.rotation_degrees = Vector3(-22,35,0)
+	sun.light_color = Color("ffdfb2")
 	sun.light_energy = 1.18
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 120
@@ -798,7 +798,7 @@ func _physics_process(delta: float) -> void:
 			camera.fov=lerpf(camera.fov,74.0+clampf(speed*0.07,0.0,6.0),clampf(delta*8.0,0,1))
 		else:
 			var look_ahead := (2.0 if state=="garage" else 0.0) if in_menu else 12.0+speed*0.36
-			var desired := car.position+back*(8.0 if state=="prerace" else (12.0 if in_menu else 9.5+speed*0.035))+Vector3(0,4.8 if state=="prerace" else (11 if in_menu else 3.4+speed*0.012),0)
+			var desired := car.position+back*(8.0 if state=="prerace" else (12.0 if in_menu else 7.0+speed*0.030))+Vector3(0,4.8 if state=="prerace" else (11 if in_menu else 2.5+speed*0.010),0)
 			# Keep the chase camera above hills and roadside objects.
 			desired.y=maxf(desired.y,world.ground_height(desired)+1.0)
 			camera.position=camera.position.lerp(desired,1-exp(-delta*6.2))
@@ -859,6 +859,7 @@ func update_vehicle(delta: float) -> void:
 	speed=velocity.length()
 	lateral_slip=lateral
 	car.animate_car(steer,lateral,speed,delta)
+	car.set_braking(brake>0.1)
 	car.update_dust(world.gravel_at(race_progress),speed)
 	car.update_wheel_visuals(dynamics.wheels)
 	car.update_suspension_visuals(dynamics.suspension)
