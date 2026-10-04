@@ -9,6 +9,9 @@ var glass: StandardMaterial3D
 var roof_material: Material
 var wall_material: Material
 var street_reference := {}
+var local_reference := {}
+var below_ground_ids := []
+var completed_building_ids := []
 
 func _polygon(ll: Array) -> PackedVector2Array:
 	var p := PackedVector2Array()
@@ -79,7 +82,13 @@ func pitched_polygon(p: PackedVector2Array,h: float,cap: SurfaceTool,wall: Surfa
 func _building(data: Dictionary) -> void:
 	var p := _polygon(data.p)
 	if p.size()<3:return
-	world.register_mapped_building(p);footprint_reference[str(data.id)]=p
+	footprint_reference[str(data.id)]=p
+	if data.tags.get("location","")=="underground" or int(data.tags.get("layer","0"))<0:
+		# Preserve geographic reference, but an underground garage is not a solid above-ground block.
+		below_ground_ids.append(str(data.id))
+		var paving := ShaderMaterial.new();paving.shader=preload("res://assets/shaders/street_paving.gdshader")
+		_ground(p,paving,0.006);return
+	world.register_mapped_building(p)
 	var mid := Vector2.ZERO
 	for v in p:mid+=v
 	mid/=float(p.size())
@@ -87,7 +96,10 @@ func _building(data: Dictionary) -> void:
 	var roof_points := roof_outline(p)
 	var roof_kind: String=data.tags.get("roof:shape",data.roof)
 	if roof_kind=="half-hipped":roof_kind="hipped"
-	var h := clampf(float(data.h),2.4,40)
+	var local_appearance: Dictionary=local_reference.get("building_overrides",{}).get(str(data.id),{})
+	var modern: bool=local_appearance.get("style","")=="modern_apartments"
+	var h := clampf(float(local_appearance.get("height_m",data.h)),2.4,40)
+	if modern:completed_building_ids.append(str(data.id))
 	if roof_kind in ["gabled","hipped"] and data.tags.has("height") and roof_points.size()==4:
 		h=maxf(2.0,h-minf(3.0,minf(p[0].distance_to(p[1]),p[1].distance_to(p[2]))*0.3))
 	var wall := _batch("wall",center,wall_material)
@@ -98,6 +110,7 @@ func _building(data: Dictionary) -> void:
 	if data.tags.has("building:colour"):color=Color.from_string(data.tags["building:colour"],color)
 	var appearance: Dictionary=street_reference.get("building_overrides",{}).get(str(data.id),{})
 	if appearance.has("facade"):color=Color(appearance.facade)
+	if local_appearance.has("facade"):color=Color(local_appearance.facade)
 	var levels := maxi(1,int(h/3.0))
 	var garage: bool=data.kind in ["garage","garages","shed","farm_auxiliary"]
 	var collision := SurfaceTool.new();collision.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -111,6 +124,9 @@ func _building(data: Dictionary) -> void:
 		_quad(wall,a,a+Vector3.UP*h,b,b+Vector3.UP*h,n,color)
 		if near_road:_quad(collision,a,a+Vector3.UP*h,b,b+Vector3.UP*h,n,Color.WHITE)
 		if garage:continue
+		if modern:
+			_modern_face(a,b,n,h,wall,windows,local_appearance)
+			continue
 		var bays := int(edge.length()/3.6)
 		for floor_id in levels:
 			for bay in bays:
@@ -122,6 +138,7 @@ func _building(data: Dictionary) -> void:
 				_quad(wall,at-edge.normalized()*0.035-Vector3.UP*0.74+n*0.012,at-edge.normalized()*0.035+Vector3.UP*0.74+n*0.012,at+edge.normalized()*0.035-Vector3.UP*0.74+n*0.012,at+edge.normalized()*0.035+Vector3.UP*0.74+n*0.012,n,Color("ebe7de"))
 	if near_road:
 		var hit := StaticBody3D.new();var shape := CollisionShape3D.new();shape.shape=collision.commit().create_trimesh_shape();shape.shape.backface_collision=true;hit.add_child(shape);add_child(hit)
+	if modern:_setback_storey(p,h,wall,cap,local_appearance)
 	p=roof_points
 	var roof_color := Color("9b5540") if roof_kind in ["hipped","gabled"] else Color("626b68")
 	if data.tags.has("roof:colour"):roof_color=Color.from_string(data.tags["roof:colour"],roof_color)
@@ -153,6 +170,7 @@ func configure(track_world: TrackWorld) -> void:
 	world=track_world
 	var data: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://assets/data/mv_rostock.json"))
 	street_reference=JSON.parse_string(FileAccess.get_file_as_string("res://assets/data/streetview_reference.json"))
+	local_reference=JSON.parse_string(FileAccess.get_file_as_string("res://assets/data/local_details26.json"))
 	wall_material=preload("res://scripts/render/materials25.gd").surface(6,Color.WHITE,true)
 	var roof := ShaderMaterial.new();roof.shader=preload("res://assets/shaders/roof24.gdshader");roof_material=roof
 	glass=StandardMaterial3D.new();glass.albedo_color=Color("344a55");glass.roughness=0.24;glass.metallic=0.35;glass.cull_mode=BaseMaterial3D.CULL_DISABLED
@@ -245,3 +263,39 @@ func _flush(batch: Dictionary, distance: float) -> void:
 	st.generate_tangents()
 	var node := MeshInstance3D.new();node.mesh=st.commit();node.material_override=batch.material
 	node.visibility_range_end=distance;node.visibility_range_end_margin=35;add_child(node)
+
+func _modern_face(a: Vector3,b: Vector3,n: Vector3,h: float,wall: SurfaceTool,windows: SurfaceTool,appearance: Dictionary) -> void:
+	var edge := b-a;var along := edge.normalized()
+	var bays := maxi(1,int(edge.length()/3.3));var levels: int=appearance.levels
+	var spacing := h/levels
+	_quad(wall,a+n*0.015,a+Vector3.UP*spacing+n*0.015,b+n*0.015,b+Vector3.UP*spacing+n*0.015,n,Color("b4b9b8"))
+	for level in levels:
+		for bay in bays:
+			var at := a.lerp(b,(float(bay)+0.5)/bays)+Vector3.UP*(spacing*level+1.55)+n*0.045
+			var half := minf(0.65,edge.length()/bays*0.28)
+			var right := along*half
+			# Dark vertical window surround and restrained warm facade panels.
+			_quad(wall,at-right*1.16-Vector3.UP*1.12,at-right*1.16+Vector3.UP*1.12,at+right*1.16-Vector3.UP*1.12,at+right*1.16+Vector3.UP*1.12,n,Color("4c5356"))
+			_quad(windows,at-right-Vector3.UP*0.94+n*0.015,at-right+Vector3.UP*0.94+n*0.015,at+right-Vector3.UP*0.94+n*0.015,at+right+Vector3.UP*0.94+n*0.015,n,Color.WHITE)
+			_quad(wall,at-along*0.025-Vector3.UP*0.96+n*0.022,at-along*0.025+Vector3.UP*0.96+n*0.022,at+along*0.025-Vector3.UP*0.96+n*0.022,at+along*0.025+Vector3.UP*0.96+n*0.022,n,Color("c1c6c4"))
+			if level>0 and bay%3==1:
+				var center := at+n*0.02+along*(half+0.33)
+				_quad(wall,center-along*0.20-Vector3.UP*1.38,center-along*0.20+Vector3.UP*1.36,center+along*0.20-Vector3.UP*1.38,center+along*0.20+Vector3.UP*1.36,n,Color(appearance.accent))
+			if level>0 and bay%2==0 and edge.length()>12:
+				var floor_at := at-Vector3.UP*1.02;var width := along*1.22;var front := n*1.05
+				_quad(wall,floor_at-width,floor_at+width,floor_at-width+front,floor_at+width+front,Vector3.UP,Color("c8ccca"))
+				_quad(wall,floor_at-width+front,floor_at-width+front+Vector3.UP*0.84,floor_at+width+front,floor_at+width+front+Vector3.UP*0.84,n,Color("8d999c"))
+				for sign_side in [-1,1]:
+					var end: Vector3=floor_at+width*sign_side
+					_quad(wall,end,end+Vector3.UP*0.84,end+front,end+front+Vector3.UP*0.84,along*sign_side,Color("a3adac"))
+
+func _setback_storey(p: PackedVector2Array,h: float,wall: SurfaceTool,cap: SurfaceTool,appearance: Dictionary) -> void:
+	for inset in Geometry2D.offset_polygon(p,-1.45):
+		if inset.size()<3:continue
+		var top := h+float(appearance.setback_height_m)
+		for i in inset.size():
+			var a := Vector3(inset[i].x,h,inset[i].y);var b := Vector3(inset[(i+1)%inset.size()].x,h,inset[(i+1)%inset.size()].y)
+			var n := Vector3(-(b-a).z,0,(b-a).x).normalized()
+			_quad(wall,a,a+Vector3.UP*(top-h),b,b+Vector3.UP*(top-h),n,Color("d5d9d6"))
+		for index in Geometry2D.triangulate_polygon(inset):
+			cap.set_color(Color("65706e"));cap.set_normal(Vector3.UP);cap.set_uv(inset[index]/2);cap.add_vertex(Vector3(inset[index].x,top,inset[index].y))

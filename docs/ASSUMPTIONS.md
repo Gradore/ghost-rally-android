@@ -56,3 +56,10 @@ Clipped complex pitched roofs retain original polygons and authored ridge/eave h
 - The sky is a synthetic LDR equirectangular panorama, not a measured HDR light probe; sun placement and lighting are approximate. Water uses analytic animated normals plus existing sky reflections; no screen-space reflection, refraction or measured water appearance is claimed.
 - Lovo receives a sedan rear-lamp arrangement and adjusted roof/rear-window profile. Other cars use different hatch/coupe/sedan roof profiles. All are original approximate meshes, without manufacturer badges; no original car model is included.
 - The 30 m CSV reference grid is computed from OSM centreline coordinates, not captured Street View. Coverage is explicitly unverified and photograph columns remain empty. Google images are not downloaded as game assets.
+
+## 0.26 local reference details
+
+- Current finished state of Rudolf-Tarnow-Straße 17 is supplied explicitly by the user, overriding the historical 2022 scaffold view. Four mapped apartment buildings use a shared approximate modern facade/balcony/setback style. The source address/footprint attribution is exact to the existing OSM dataset; dimensions and appearance are interpretations.
+- Underground-tagged/layer-negative building references are kept in `footprint_reference` but not rendered as solid above-ground houses. Courtyard paving is decorative and not a surveyed parking map. Above-ground houses retain their original footprint colliders.
+- Bus stop source node and local road segments remain geographic references; sidewalk offsets, orange bin, lamp spacing and shelter dimensions are assumptions.
+- Großräschen roundabout decorative alignment now follows the existing source polyline centre. Island vegetation, planters and flower placement are artistic approximations; the original driving route is unchanged.

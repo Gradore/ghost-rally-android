@@ -42,7 +42,7 @@ func run_test() -> void:
 	var bodies := 0;var probes := 0
 	for node in mv.get_children():
 		if node is StaticBody3D:bodies+=1
-	check(bodies==mv.footprint_reference.size(),"all mapped buildings have collision bodies")
+	check(bodies==mv.footprint_reference.size()-mv.below_ground_ids.size(),"all above-ground mapped buildings have collision bodies; underground garages stay open")
 	for id in mv.footprint_reference:
 		var p: PackedVector2Array=mv.footprint_reference[id]
 		if probes>=40:break

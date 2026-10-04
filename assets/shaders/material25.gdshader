@@ -17,7 +17,7 @@ void fragment(){
  vec3 col=tint.rgb*(vertex_tint?COLOR.rgb:vec3(1));
  int tile=kind;
  if(kind==6){tile=(col.r>col.g*1.22 && col.r>col.b*1.25)?1:2;}
- vec2 uv=wp.xz/(tile==0?1.2:3.0);
+ vec2 uv=wp.xz/(tile==0?0.65:3.0);
  if(tile==1 || tile==2){
   vec3 n=abs(wn);uv=vec2(n.x>n.z?wp.z:wp.x,wp.y)/(tile==1?1.7:0.75);
  }
@@ -28,6 +28,7 @@ void fragment(){
  if(tile==1){detail*=col/max(vec3(0.48,0.22,0.13),vec3(0.08));}
  else if(tile==2){detail=mix(col*0.8,detail*col/vec3(0.78,0.75,0.68),0.25);}
  else{detail*=col;}
+ if(tile==0){detail=mix(vec3(0.085,0.09,0.095),detail,0.35);}
  ALBEDO=clamp(detail*variation,vec3(0.015),vec3(0.85));
  ROUGHNESS=tile==0?0.87:0.96;
  SPECULAR=tile==0?0.3:0.2;

@@ -1,0 +1,89 @@
+{
+  "_assumption": true,
+  "source": "User-provided reference images and explicit current completion statement, 2026-10-04; original authored geometry, no copied image pixels.",
+  "building_overrides": {
+    "1033343752": {
+      "style": "modern_apartments",
+      "facade": "e6e4dc",
+      "accent": "ccbfa2",
+      "height_m": 12.4,
+      "levels": 4,
+      "setback_height_m": 2.5,
+      "status": "completed",
+      "scaffolding": false,
+      "_assumption": true,
+      "current_status_source": "User: number 17 is completed in the same style as the rest, superseding the 2022 construction view."
+    },
+    "1033343756": {
+      "style": "modern_apartments",
+      "facade": "e6e4dc",
+      "accent": "ccbfa2",
+      "height_m": 12.4,
+      "levels": 4,
+      "setback_height_m": 2.5,
+      "status": "completed",
+      "scaffolding": false,
+      "_assumption": true
+    },
+    "1033343747": {
+      "style": "modern_apartments",
+      "facade": "e6e4dc",
+      "accent": "ccbfa2",
+      "height_m": 12.4,
+      "levels": 4,
+      "setback_height_m": 2.5,
+      "status": "completed",
+      "scaffolding": false,
+      "_assumption": true
+    },
+    "1033343749": {
+      "style": "modern_apartments",
+      "facade": "e6e4dc",
+      "accent": "ccbfa2",
+      "height_m": 12.4,
+      "levels": 4,
+      "setback_height_m": 2.5,
+      "status": "completed",
+      "scaffolding": false,
+      "_assumption": true
+    }
+  },
+  "rostock_bus_stop": {
+    "road_id": "32036620",
+    "source_node": "2962765615",
+    "stop_position": [
+      54.0859188,
+      12.1890231
+    ],
+    "sidewalk_side": -1,
+    "_assumption": true
+  },
+  "gross_roundabout": {
+    "source": "existing start_area.json OSM roundabout polyline",
+    "island_radius_m": 6.2,
+    "tree_offsets_m": [
+      [
+        -2.0,
+        0.5
+      ],
+      [
+        2.0,
+        -0.3
+      ]
+    ],
+    "planters": 4,
+    "_assumption": true
+  },
+  "images": [
+    "1000333960.png",
+    "1000333961.png",
+    "1000333962.png",
+    "1000333963.png",
+    "1000333964.png",
+    "1000333965.png",
+    "1000333966.png",
+    "1000333967.png",
+    "1000333968.png",
+    "1000333969.png"
+  ]
+}

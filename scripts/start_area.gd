@@ -158,13 +158,17 @@ func configure(track_world: Node3D) -> void:
 	for b in data.buildings:building(b)
 	# Seestraße terminus and the original paved roundabout.
 	var circle := PackedVector2Array(); var island := PackedVector2Array()
-	var round_center: Vector3= world.geo_to_world(51.575193,14.009919)
+	var round_center := Vector3.ZERO
+	for index in data.roundabout.size()-1:round_center+=geo(data.roundabout[index])
+	round_center/=float(data.roundabout.size()-1)
+	set_meta("roundabout_center",round_center)
 	for i in 64:
 		var angle := float(i)*TAU/64.0
 		circle.append(Vector2(round_center.x,round_center.z)+Vector2(cos(angle),sin(angle))*14.0)
 		island.append(Vector2(round_center.x,round_center.z)+Vector2(cos(angle),sin(angle))*6.2)
 	polygon(circle,0.06,preload("res://scripts/render/materials25.gd").surface(0))
 	polygon(island,0.13,stone)
+	_roundabout_garden(round_center)
 	var plaza: Vector3= world.geo_to_world(51.57512,14.01014)
 	var paved := box(self,plaza+Vector3(0,0.025,0),Vector3(37,0.045,48),tile_material(Color("a08e83"),Vector2(0.24,0.12),true)); paved.rotation.y=world.metric_rotation
 	for i in 12:
@@ -246,3 +250,27 @@ func _palm(at: Vector3) -> void:
 			var w := sin(t*PI)*0.24;var v := sin(u*PI)*0.24
 			for vertex in [p-side*w,q-side*v,p+side*w,p+side*w,q-side*v,q+side*v]:st.add_vertex(vertex)
 	st.generate_normals();var leaves := MeshInstance3D.new();leaves.mesh=st.commit();leaves.material_override=mat("53754a");root.add_child(leaves)
+
+func _roundabout_garden(center: Vector3) -> void:
+	var grass := preload("res://scripts/render/materials25.gd").surface(4)
+	var points := PackedVector2Array()
+	for i in 48:points.append(Vector2(center.x,center.z)+Vector2(cos(i*TAU/48),sin(i*TAU/48))*5.6)
+	polygon(points,0.155,grass)
+	var transforms: Array[Transform3D]=[]
+	for offset in [Vector3(-2,0.15,0.5),Vector3(2,0.15,-0.3)]:
+		transforms.append(Transform3D(Basis().scaled(Vector3(0.38,1.1,0.38)),center+offset))
+	preload("res://scripts/render/forest.gd").plant_variants(self,transforms,"roundabout_columnar_trees",200,0,true,false)
+	var flowers: Array[Transform3D]=[]
+	for i in 4:
+		var at := center+Vector3(cos(i*TAU/4+0.3)*3.8,0.52,sin(i*TAU/4+0.3)*3.8)
+		var pot := MeshInstance3D.new();var cylinder := CylinderMesh.new();cylinder.top_radius=0.48;cylinder.bottom_radius=0.38;cylinder.height=0.68;cylinder.radial_segments=16
+		pot.mesh=cylinder;pot.material_override=mat("b7b5a4");pot.position=at;add_child(pot)
+		for bloom in 8:
+			var angle := bloom*2.3999
+			flowers.append(Transform3D(Basis(),at+Vector3(cos(angle)*0.35,0.37+0.12*sin(angle),sin(angle)*0.35)))
+
+	var flower_mesh := SphereMesh.new();flower_mesh.radius=0.11;flower_mesh.height=0.15;flower_mesh.radial_segments=8;flower_mesh.rings=4
+	var flowers_mm := MultiMesh.new();flowers_mm.transform_format=MultiMesh.TRANSFORM_3D;flowers_mm.use_colors=true;flowers_mm.mesh=flower_mesh;flowers_mm.instance_count=flowers.size()
+	for i in flowers.size():flowers_mm.set_instance_transform(i,flowers[i]);flowers_mm.set_instance_color(i,Color("a95e79" if i%2==0 else "d6c590"))
+	var flower_node := MultiMeshInstance3D.new();flower_node.multimesh=flowers_mm
+	var flower_mat := StandardMaterial3D.new();flower_mat.vertex_color_use_as_albedo=true;flower_mat.roughness=0.95;flower_node.material_override=flower_mat;flower_node.visibility_range_end=100;add_child(flower_node)

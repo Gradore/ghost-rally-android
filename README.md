@@ -1,5 +1,10 @@
 # GHOST RALLY — Android simulation alpha 0.24.0
 
+## 0.26.0 — local route details
+
+User-supplied references inform completed modern apartment facades around Rudolf-Tarnow-Straße 17, with balconies, window bands and a setback storey. Historical scaffolding is not reproduced. The falsely above-ground underground-garage block is removed; original footprint source data remains intact. Wider red/grey sidewalks, a bus shelter, bins and lamps refine the residential street. Großräschen's planted roundabout is aligned to the existing OSM centreline and gains narrow crowns and flower planters. See `docs/LOCAL-DETAILS-0.26.md` for exact source attribution and assumptions.
+
+
 ## 0.25.0 — graphic materials and vehicle silhouettes
 
 New synthetic photo-style asphalt/brick/plaster/sand/grass/gravel atlas, panoramic cloud sky and transparent oak branches; animated water with sky reflections. Applied to Rostock/Großräschen with original route, footprint and height data retained. Lovo sedan rear lamps and roof profile corrected, other cars gain distinct hatch/coupe/sedan silhouettes, garage illumination improved. Native controls/physics from 0.24 remain unchanged.

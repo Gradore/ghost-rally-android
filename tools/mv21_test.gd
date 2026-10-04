@@ -23,7 +23,7 @@ func run_test() -> void:
 		var middle := Vector2.ZERO
 		for point in p:middle+=point
 		middle/=float(p.size())
-		if Geometry2D.is_point_in_polygon(middle,p):assert(not world.scenery_clear(Vector3(middle.x,0,middle.y),0),"broad phase protects mapped house plots")
+		if b.tags.get("location","")!="underground" and int(b.tags.get("layer","0"))>=0 and Geometry2D.is_point_in_polygon(middle,p):assert(not world.scenery_clear(Vector3(middle.x,0,middle.y),0),"broad phase protects mapped house plots")
 		for i in p.size():
 			var expected := world.geo_to_world(float(b.p[i][0]),float(b.p[i][1]))
 			assert(Vector3(p[i].x,0,p[i].y).distance_to(expected)<0.02,"no house repositioning")
