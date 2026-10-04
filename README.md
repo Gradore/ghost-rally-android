@@ -1,6 +1,15 @@
-# GHOST RALLY — Android simulation alpha 0.20.0
+# GHOST RALLY — Android simulation alpha 0.21.0
 
 Native Godot 4.4.1 project, Mobile/Vulkan renderer, Jolt and Terrain3D. Recovered from the public 0.10.0 source release and developed through locally verified milestones.
+
+## Changes in 0.21
+
+- Add Rostock → Köster-Klickermann-Weg → Neuendorf/Broderstorf → Mönchhagen as a seventeenth stage. All 451 edges follow OSM ways, including anchor projections onto the original road segments. The 15.6 km route includes 3.44 km modeled field/earth/gravel paths, with 1.84 km explicitly tagged unpaved; missing track surfaces are assumptions. Urban connecting sections remain asphalt.
+- Preserve the original Müritz stage, all existing record keys and the three Großräschen WPs. MV selects the new stage by default and offers a Müritz/Rostock switch.
+- Render 2,137 original building outlines without moving or replacing them with bounding boxes. Tagged heights/levels inform building heights; facade finishes and untagged roofs/heights remain interpretations. Batch facade/window/roof geometry in 200 m cells, cull distant detail and index building plots spatially for vegetation clearance.
+- Use mapped field/woodland/water polygons, 217 mapped individual trees, 189 tree rows, 39 waterway lines and 13 railway polylines. Sample broadleaf crowns along rows and inside woodland rather than filling the whole route with procedural pine scenery.
+- Generate terrain/context-road tangents for normal maps, skip empty detail batches, and lift shadow fill so town and tree shadows retain visible ground detail.
+- Asphalt and unpaved segments now drive both appearance and tire contact. Add independent OSM source-edge/footprint verification and world-space/surface regressions. This is a geographically based alpha, not a photogrammetric or surveyed reproduction.
 
 ## Changes in 0.20
 

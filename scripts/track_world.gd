@@ -11,6 +11,10 @@ var distances := PackedFloat32Array()
 var origin_lat := 0.0
 var origin_lon := 0.0
 var metric_rotation := 0.0
+var surface_segments: Array = []
+var source_route_length := 1.0
+var mapped_buildings: Array[PackedVector2Array] = []
+var mapped_building_cells := {}
 var tree_centers := PackedVector2Array()
 var tree_radii := PackedFloat32Array()
 var water_polygons: Array[PackedVector2Array] = []
@@ -64,6 +68,8 @@ func _load_route() -> void:
 	var f := FileAccess.open("res://assets/data/routes.json",FileAccess.READ)
 	var routes: Array=JSON.parse_string(f.get_as_text()) if f else []
 	var route: Dictionary=routes[int(track.route_index)]
+	surface_segments=route.get("segments",[]) if track.get("mapped_mv",false) else []
+	source_route_length=float(route.length)
 	var coordinates: Array=route.coordinates
 	var lat0: float=float(coordinates[0][0])
 	var lon0: float=float(coordinates[0][1])
@@ -270,6 +276,7 @@ func heading_at(progress: float) -> float:
 	return atan2(-d.x,-d.y)
 
 func road_width_at(progress: float) -> float:
+	if track.get("mapped_mv",false): return float(_surface_segment(progress).get("width",5.6))
 	var before := heading_at(maxf(0.0,progress-18.0))
 	var after := heading_at(minf(float(track.length),progress+18.0))
 	var bend := absf(wrapf(after-before,-PI,PI))
@@ -331,7 +338,19 @@ func sweep_trees(from: Vector3, to: Vector3, car_radius: float) -> Dictionary:
 		result={"position":center+normal*(radius+0.04),"normal":normal,"tree_index":i}
 	return result
 
+func register_mapped_building(p: PackedVector2Array) -> void:
+	mapped_buildings.append(p)
+	var lo := p[0];var hi := lo
+	for v in p:lo=lo.min(v);hi=hi.max(v)
+	for x in range(floori(lo.x/80),floori(hi.x/80)+1):
+		for z in range(floori(lo.y/80),floori(hi.y/80)+1):
+			var key := Vector2i(x,z)
+			if not mapped_building_cells.has(key):mapped_building_cells[key]=[]
+			mapped_building_cells[key].append(p)
+
 func scenery_clear(position: Vector3, radius: float) -> bool:
+	for polygon in mapped_building_cells.get(Vector2i(floori(position.x/80),floori(position.z/80)),[]):
+		if Geometry2D.is_point_in_polygon(Vector2(position.x,position.z),polygon): return false
 	for polygon in water_polygons:
 		if Geometry2D.is_point_in_polygon(Vector2(position.x,position.z),polygon): return false
 	if track.state_code=="12" and position.distance_to(geo_to_world(51.5753876,14.0098543))<220.0: return false
@@ -363,7 +382,7 @@ func lateral_offset(pos: Vector3) -> float:
 	var h := heading_at(progress)
 	return Vector2(pos.x-c.x,pos.z-c.z).dot(Vector2(cos(h),-sin(h)))
 
-func _add_strip(parent: Node3D, width: float, y: float, mat: Material, offset: float = 0.0, dash: bool = false) -> void:
+func _add_strip(parent: Node3D, width: float, y: float, mat: Material, offset: float = 0.0, dash: bool = false, surface_kind: int = -1) -> void:
 	var vertices := PackedVector3Array()
 	var normals := PackedVector3Array()
 	var uvs := PackedVector2Array()
@@ -373,6 +392,7 @@ func _add_strip(parent: Node3D, width: float, y: float, mat: Material, offset: f
 		var p0 := float(i)*5.0
 		var p1 := minf(float(track.length),float(i+1)*5.0)
 		if p1<=p0: continue
+		if surface_kind>=0 and int(gravel_at((p0+p1)*0.5))!=surface_kind: continue
 		var c0 := center_at(p0)
 		var c1 := center_at(p1)
 		var h0 := heading_at(p0)
@@ -423,11 +443,12 @@ func _multimesh(mesh: Mesh, mat: Material, transforms: Array[Transform3D]) -> vo
 	node.material_override = mat
 	scenery.add_child(node)
 
-func _fill_bends(mat: Material) -> void:
+func _fill_bends(mat: Material, surface_kind: int = -1) -> void:
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var triangles := 0
 	for i in range(1,route_points.size()-1):
+		if surface_kind>=0 and int(gravel_at(distances[i]))!=surface_kind: continue
 		var incoming := (route_points[i]-route_points[i-1]).normalized()
 		var outgoing := (route_points[i+1]-route_points[i]).normalized()
 		var angle := absf(atan2(incoming.cross(outgoing),incoming.dot(outgoing)))
@@ -486,7 +507,7 @@ func build(data: Dictionary) -> void:
 	var low := route_points[0]
 	var high := route_points[0]
 	for p in route_points: low=low.min(p); high=high.max(p)
-	plane.size = high-low+Vector2(300,300)
+	plane.size = high-low+Vector2(1800,1800) if track.get("mapped_mv",false) else high-low+Vector2(300,300)
 	ground.mesh=plane
 	ground.position=Vector3((high.x+low.x)*0.5,-0.12,(high.y+low.y)*0.5)
 	ground.material_override=_textured_material("res://assets/nature/forrest_ground_01_diff.jpg",Color(0.57,0.67,0.57),Vector3(plane.size.x/14.0,plane.size.y/14.0,1.0))
@@ -506,7 +527,10 @@ func build(data: Dictionary) -> void:
 		terrain3d=load("res://scripts/lake_terrain.gd").build(scenery)
 		if terrain3d!=null: ground.visible=false
 	_build_city_buildings()
-	_build_map_context()
+	if not track.get("mapped_mv",false): _build_map_context()
+	else:
+		var mv: Node3D=load("res://scripts/mv_scenery.gd").new()
+		scenery.add_child(mv);mv.configure(self)
 	if track.state_code=="12":
 		var start_area: Node3D=load("res://scripts/start_area.gd").new()
 		scenery.add_child(start_area)
@@ -524,8 +548,14 @@ func build(data: Dictionary) -> void:
 		gravel_shader.set_shader_parameter("normal_tex",load("res://assets/nature/gravel_floor_nor_gl.jpg"))
 		gravel_shader.set_shader_parameter("road_half_width",road_width*0.5)
 		driving_surface=gravel_shader
-	_add_strip(road,road_width,0.035,driving_surface)
-	_fill_bends(driving_surface)
+	if track.get("mapped_mv",false):
+		var paved: Material=_textured_material("res://assets/textures/asphalt_v10.png",Color("aeb4b2"))
+		_add_strip(road,road_width,0.035,driving_surface,0,false,1)
+		_add_strip(road,road_width,0.035,paved,0,false,0)
+		_fill_bends(driving_surface,1);_fill_bends(paved,0)
+	else:
+		_add_strip(road,road_width,0.035,driving_surface)
+		_fill_bends(driving_surface)
 	if track.state_code=="12" and float(track.get("source_offset",0))==0: _start_asphalt()
 	if asphalt:
 		_add_strip(road,0.17,0.052,_road_material(Color("eed9a6")),road_width*0.5-1.0)
@@ -587,6 +617,7 @@ func build(data: Dictionary) -> void:
 					light_poles.append(Transform3D(Basis().scaled(Vector3(0.22,5.8,0.22)),lamp_position+Vector3.UP*2.9))
 					light_caps.append(Transform3D(Basis().scaled(Vector3(0.8,0.2,0.6)),lamp_position+Vector3.UP*5.76))
 					add_obstacle(lamp_position+Vector3.UP*2.9,Vector3(0.38,5.8,0.38))
+			if track.get("mapped_mv",false): continue
 			if rng.randf() < (0.55 if industrial else 0.08):
 				continue
 			var distance := rng.randf_range(7.0,26.0)
@@ -698,7 +729,18 @@ func _start_asphalt() -> void:
 	m.material_override=_textured_material("res://assets/textures/asphalt_v10.png",Color.WHITE)
 	road.add_child(m)
 
+func _surface_segment(progress: float) -> Dictionary:
+	if surface_segments.is_empty():return {}
+	var target := progress*source_route_length/float(track.length)
+	var lo := 0;var hi := surface_segments.size()-1
+	while lo<hi:
+		var mid := int((lo+hi)/2)
+		if float(surface_segments[mid].to)<target:lo=mid+1
+		else:hi=mid
+	return surface_segments[lo]
+
 func gravel_at(progress: float) -> bool:
+	if track.get("mapped_mv",false):return bool(_surface_segment(progress).get("gravel",false))
 	return track.surface=="GRAVEL" and not (track.state_code=="12" and progress+float(track.get("source_offset",0))<270.0)
 
 func ground_height(at: Vector3) -> float:

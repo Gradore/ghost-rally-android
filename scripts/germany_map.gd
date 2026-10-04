@@ -10,6 +10,7 @@ var states: Array = []
 var routes: Array = []
 var map_features: Array = []
 var track_codes: Array = []
+var selected_route := 16
 var zoom := 1.0:
 	set(value):
 		zoom = value
@@ -59,6 +60,7 @@ func _draw() -> void:
 		var code: String = states[highlighted].code
 		for feature in map_features:
 			if feature.state_code!=code: continue
+			if feature.has("route_index") and feature.route_index!=selected_route:continue
 			if zoom<18.0: continue
 			for polygon in feature.water:
 				var shape := PackedVector2Array()
@@ -77,6 +79,7 @@ func _draw() -> void:
 					draw_polyline(line,Color("aab8a6") if kind=="major" else Color("79958a"),width,true)
 		for route in routes:
 			if route.state_code!=code: continue
+			if code=="13" and routes.find(route)!=selected_route:continue
 			var line := PackedVector2Array()
 			for ll in route.coordinates: line.append(_geo_to_px(Vector2(float(ll[1]),float(ll[0]))))
 			if line.size()>1:
@@ -150,9 +153,10 @@ func choose_code(code: String) -> void:
 	pending_tween.tween_property(self,"zoom",_zoom_for(box,1.32),0.55).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	await pending_tween.finished
 	stage=2; queue_redraw()
+	selected_route=16 if code=="13" else track_codes.find(code)
 	var route: Dictionary={}
 	for r in routes:
-		if r.state_code==code: route=r; break
+		if r.state_code==code: route=r
 	if route.is_empty(): return
 	box=_bbox_for_route(route)
 	pending_tween=create_tween()
@@ -160,7 +164,7 @@ func choose_code(code: String) -> void:
 	pending_tween.tween_property(self,"center_geo",box.get_center(),0.65).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	pending_tween.tween_property(self,"zoom",minf(_zoom_for(box,1.5),1200),0.65).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	await pending_tween.finished
-	selected.emit(track_codes.find(code))
+	selected.emit(16 if code=="13" else track_codes.find(code))
 
 func reset_view() -> void:
 	if pending_tween: pending_tween.kill()
@@ -171,3 +175,9 @@ func reset_view() -> void:
 	tween.tween_property(self,"center_geo",Vector2(10.45,51.13),0.55)
 	tween.tween_property(self,"zoom",1.0,0.55)
 	queue_redraw()
+
+func select_route(index: int) -> void:
+	selected_route=index
+	var box := _bbox_for_route(routes[index])
+	center_geo=box.get_center();zoom=minf(_zoom_for(box,1.5),1200)
+	selected.emit(index);queue_redraw()

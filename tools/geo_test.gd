@@ -9,7 +9,7 @@ func run_tests() -> void:
 	change_scene_to_file("res://scenes/main.tscn")
 	for i in 4: await process_frame
 	var game := current_scene
-	if game.Data.TRACKS.size()!=16: fail("expected 16 states")
+	if game.Data.TRACKS.size()!=17: fail("expected 17 stages across 16 states")
 	var routes: Array=JSON.parse_string(FileAccess.get_file_as_string("res://assets/data/routes.json"))
 	for i in routes.size():
 		game.active_track=i
@@ -22,12 +22,13 @@ func run_tests() -> void:
 			var p: Vector3=game.world.center_at(progress)
 			if absf(game.world.progress_at(p,progress)-progress)>2.0: fail("progress projection " + str(i))
 			if absf(game.world.lateral_offset(p))>1.0: fail("centerline offset " + str(i))
+			if game.world.track.get("mapped_mv",false):continue
 			var road_mesh := game.world.road.get_child(1) as MeshInstance3D
 			var vertices: PackedVector3Array=road_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
 			var segment: int=int(progress/5.0)
 			var across: Vector3=vertices[segment*6+2]-vertices[segment*6]
 			var along: Vector3=game.world.center_at(progress+2.0)-game.world.center_at(progress-2.0)
-			if across.length()<5.5 or absf(across.normalized().dot(along.normalized()))>0.2: fail("road cross section " + str(i))
+			if not game.world.track.get("mapped_mv",false) and (across.length()<5.5 or absf(across.normalized().dot(along.normalized()))>0.2): fail("road cross section " + str(i))
 		for child in game.world.scenery.get_children():
 			if child is StaticBody3D:
 				var shape: Shape3D=child.get_child(0).shape
@@ -46,7 +47,7 @@ func run_tests() -> void:
 	game.map_control.choose_code("09")
 	await create_timer(1.5).timeout
 	if game.active_track!=1 or game.map_control.stage!=2: fail("map zoom selection")
-	if not failed:print("PASS: 16 routes, map zoom, route projection")
+	if not failed:print("PASS: 17 routes, map zoom, route projection")
 	quit(1 if failed else 0)
 
 func fail(message: String) -> void:

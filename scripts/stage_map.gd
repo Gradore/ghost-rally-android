@@ -21,6 +21,7 @@ func _draw() -> void:
 	var features: Array=JSON.parse_string(file.get_as_text()) if file else []
 	for f in features:
 		if f.state_code!=world.track.state_code:continue
+		if f.has("route_index") and f.route_index!=world.track.route_index:continue
 		for polygon in f.water:
 			var points := PackedVector2Array()
 			for ll in polygon:

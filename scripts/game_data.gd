@@ -33,7 +33,8 @@ const TRACKS := [
 	{"name":"ERZGEBIRGE PASS", "state":"Sachsen", "state_code":"14", "place":"ERZGEBIRGE", "surface":"GRAVEL", "length":4556.0, "seed":13, "route_index":12, "color":Color("5a665c")},
 	{"name":"OSTHARZ DRIVE", "state":"Sachsen-Anhalt", "state_code":"15", "place":"OSTHARZ", "surface":"GRAVEL", "length":5185.0, "seed":14, "route_index":13, "color":Color("53694e")},
 	{"name":"PLÖN LAKES", "state":"Schleswig-Holstein", "state_code":"01", "place":"PLÖN", "surface":"GRAVEL", "length":3940.0, "seed":15, "route_index":14, "color":Color("4c6c67")},
-	{"name":"THÜRINGER WALD", "state":"Thüringen", "state_code":"16", "place":"THÜRINGER WALD", "surface":"GRAVEL", "length":5578.0, "seed":16, "route_index":15, "color":Color("486652")}
+	{"name":"THÜRINGER WALD", "state":"Thüringen", "state_code":"16", "place":"THÜRINGER WALD", "surface":"GRAVEL", "length":5578.0, "seed":16, "route_index":15, "color":Color("486652")},
+	{"name":"ROSTOCK → MÖNCHHAGEN", "state":"Mecklenburg-Vorpommern", "state_code":"13", "place":"BRINCKMANNSDORF · NEUENDORF", "surface":"MIXED", "length":15623.4, "seed":21, "route_index":16, "mapped_mv":true, "color":Color("6a7951")}
 ]
 
 static func today_track() -> int:

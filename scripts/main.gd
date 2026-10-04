@@ -165,7 +165,7 @@ func build_scene() -> void:
 	environment.reflected_light_source=Environment.REFLECTION_SOURCE_SKY
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color("9bb7b2")
-	environment.ambient_light_energy = 0.38
+	environment.ambient_light_energy = 0.50
 	environment.tonemap_mode = Environment.TONE_MAPPER_ACES
 	environment.fog_enabled = true
 	environment.fog_density = 0.0016
@@ -180,6 +180,7 @@ func build_scene() -> void:
 	sun.light_color = Color("ffdfb2")
 	sun.light_energy = 1.18
 	sun.shadow_enabled = true
+	sun.shadow_opacity=0.78
 	sun.directional_shadow_max_distance = 120
 	sun.directional_shadow_mode=DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 	sun.directional_shadow_blend_splits=true
@@ -362,7 +363,7 @@ func show_tracks() -> void:
 	state="tracks"
 	clear_ui()
 	var veil := ColorRect.new(); veil.color=Color(0.015,0.05,0.07,0.94); veil.set_anchors_preset(Control.PRESET_FULL_RECT); ui.add_child(veil)
-	_label(ui,"DEUTSCHLAND  /  16 RALLY-STRECKEN",42,Color.WHITE,Vector2(48,20),Vector2(1050,59),true)
+	_label(ui,"DEUTSCHLAND  /  17 RALLY-STRECKEN",42,Color.WHITE,Vector2(48,20),Vector2(1050,59),true)
 	_label(ui,"BUNDESLAND WÄHLEN  →  ECHTE OSM-KARTE  →  ZIELPUNKT",16,Color("f4c64f"),Vector2(50,78),Vector2(850,28))
 	var map_frame := _card(ui,Vector2(38,119),Vector2(639,546))
 	map_control=GermanyMapScene.new()
@@ -400,10 +401,12 @@ func _render_map_side(index: int) -> void:
 		_label(map_side,t.name,25,Color("f6ca50"),Vector2(27,144),Vector2(486,38),true)
 		_label(map_side,"REGION    %s" % t.place,19,Color("c5d9d3"),Vector2(27,203),Vector2(486,34))
 		_label(map_side,"LÄNGE     %.1f KM" % [float(t.length)/1000.0],19,Color("c5d9d3"),Vector2(27,244),Vector2(486,34))
-		_label(map_side,"BELAG       %s" % ("SCHOTTER" if t.surface=="GRAVEL" else "ASPHALT"),19,Color("c5d9d3"),Vector2(27,285),Vector2(486,34))
+		_label(map_side,"BELAG       %s" % ("ASPHALT / FELDWEGE" if t.surface=="MIXED" else "SCHOTTER" if t.surface=="GRAVEL" else "ASPHALT"),19,Color("c5d9d3"),Vector2(27,285),Vector2(486,34))
 		_label(map_side,"ZIEL CA. 7 MIN / WAGENABHÄNGIG",19,Color("c5d9d3"),Vector2(27,326),Vector2(486,34))
-		_label(map_side,"OSM-Straßen und Gebäude auf der Streckenkarte.",15,Color("9bb9b4"),Vector2(27,379),Vector2(486,28))
+		if t.state_code!="13":_label(map_side,"OSM-Straßen und Gebäude auf der Streckenkarte.",15,Color("9bb9b4"),Vector2(27,379),Vector2(486,28))
 		_button(map_side,"STRECKE FAHREN  →",Vector2(27,429),Vector2(486,58),func(): event_daily=false; show_pre_race(),true)
+		if t.state_code=="13":
+			_button(map_side,"MÜRITZ / ROSTOCK WECHSELN",Vector2(27,379),Vector2(486,34),func(): map_control.select_route(7 if active_track==16 else 16))
 		_button(map_side,"ANDERES BUNDESLAND",Vector2(27,497),Vector2(486,42),func(): map_control.reset_view(); _render_map_side(-1))
 
 func show_garage() -> void:

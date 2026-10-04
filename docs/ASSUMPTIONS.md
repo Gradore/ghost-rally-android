@@ -20,3 +20,12 @@ All config objects with `_assumption: true` contain provisional calibration. No 
 - Großräschen WP boundaries divide the existing road into equal distances; they are game event boundaries, not real-world rally authorisations or official WP starts.
 
 - 0.20: 81 Großräschen start-area footprints revalidated unchanged against OSM on 2026-10-04. Google Maps map/satellite view was visually checked for Seehotel, IBA-Studierhaus, Seesporthalle, curved pavilions and IBA-Terrassen. Footprints are OSM data, not a Google imagery extraction or survey. Untagged roof types, ridge heights, three terrace-cube subdivisions, facade/window detail and tree species/placement remain visual assumptions. Tree variants are authored procedural geometry; no Google imagery is shipped.
+
+
+## 0.21 Rostock–Mönchhagen
+
+OSM positions and footprint polygons are source geometry. The four supplied short Plus Codes resolve within the Rostock region using the 9F6J prefix; each is snapped to the nearest eligible road segment (4.9 m start, 0.2 m Köster-Klickermann-Weg, 21.1 m Neuendorf village pin, 2.4 m Ibenweg finish). No invented connector crosses gardens or fields. Routing prefers unpaved tracks after Neuendorf but uses mapped asphalt connections where needed. Unknown track surfaces are modeled unpaved and marked surface_assumption; “gravel” contact includes earth/grass/compacted paths, not exclusively loose stone. Lane/track widths of 5.6/3.8 m are visual and gameplay assumptions where widths are untagged. Road rounding is inherited and can trim OSM junction corners by up to 11 m.
+
+Building heights without height/levels tags, roof profiles without roof tags, colors, windows and materials are authored assumptions. No Google aerial imagery is distributed, and screenshot roof/facade appearance is not copied as an exact model. MV terrain remains flat with the existing small procedural road undulations, not surveyed elevation. Individual OSM tree coordinates and row/woodland geometry are retained; tree height, species and sampled crown spacing are assumptions. Woodland multipolygon relations are not yet imported; buildings with holes or multipolygon relations are not reconstructed from relations. There is no guarantee of complete current building coverage or device FPS.
+
+Shadow opacity 0.78 and ambient energy 0.50 are an artistic approximation of indirect daylight for the mobile renderer.

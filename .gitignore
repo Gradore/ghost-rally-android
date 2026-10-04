@@ -6,3 +6,5 @@
 *.jks
 .env
 outputs/
+
+__pycache__/
