@@ -27,6 +27,7 @@ var top_bar: Control
 var timer_label: Label
 var sector_label: Label
 var speed_label: Label
+var gear_label: Label
 var nav_label: Label
 var progress_bar: ProgressBar
 var countdown_label: Label
@@ -159,7 +160,9 @@ func build_scene() -> void:
 	var cloud_sky := ShaderMaterial.new()
 	cloud_sky.shader=load("res://assets/shaders/day_sky.gdshader")
 	atmosphere.sky_material=cloud_sky
+	atmosphere.radiance_size=Sky.RADIANCE_SIZE_128
 	environment.sky=atmosphere
+	environment.reflected_light_source=Environment.REFLECTION_SOURCE_SKY
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color("9bb7b2")
 	environment.ambient_light_energy = 0.38
@@ -585,7 +588,8 @@ func build_race_ui() -> void:
 	_label(top,world.track.name,16,Color("f4c64f"),Vector2(19,11),Vector2(365,25),true)
 	timer_label=_label(top,"00:00.000",34,Color.WHITE,Vector2(18,38),Vector2(278,44),true)
 	var info := _card(ui,Vector2(1050,19),Vector2(205,84))
-	sector_label=_label(info,"SECTOR 1 / 3",20,Color.WHITE,Vector2(18,15),Vector2(184,27),true)
+	sector_label=_label(info,"SECTOR 1 / 3",20,Color.WHITE,Vector2(18,15),Vector2(143,27),true)
+	gear_label=_label(info,"G1",18,Color("f4c64f"),Vector2(162,16),Vector2(37,25),true)
 	speed_label=_label(info,"000 KM/H",27,Color("f4c64f"),Vector2(18,45),Vector2(184,34),true)
 	progress_bar=ProgressBar.new()
 	progress_bar.position=Vector2(451,42); progress_bar.size=Vector2(429,17)
@@ -595,8 +599,8 @@ func build_race_ui() -> void:
 	progress_bar.add_theme_stylebox_override("background",_panel(Color(0.04,0.12,0.15,0.8)))
 	progress_bar.add_theme_stylebox_override("fill",_panel(Color("f4c64f")))
 	ui.add_child(progress_bar)
-	_label(ui,"START",13,Color("d4e1d5"),Vector2(452,65),Vector2(90,20))
-	_label(ui,"FINISH",13,Color("d4e1d5"),Vector2(815,65),Vector2(90,20))
+	_label(ui,"START",13,Color("243f3d"),Vector2(452,65),Vector2(90,20))
+	_label(ui,"FINISH",13,Color("243f3d"),Vector2(815,65),Vector2(90,20))
 	var nav_card := _card(ui,Vector2(451,98),Vector2(429,47),false)
 	nav_label=_label(nav_card,"ROADBOOK  ·  START",18,Color("f4c64f"),Vector2(13,9),Vector2(400,30),true)
 	var map_card := _card(ui,Vector2(25,120),Vector2(175,184))
@@ -779,7 +783,8 @@ func _physics_process(delta: float) -> void:
 			if state!="race":return
 			update_navigation()
 			timer_label.text=Data.format_time(race_time)
-			speed_label.text=("R  %02d KM/H" if reverse_engaged else str(dynamics.gear)+"  %03d KM/H") % int(speed*3.6)
+			speed_label.text="%03d KM/H" % int(speed*3.6)
+			gear_label.text="R" if reverse_engaged else "G%d" % dynamics.gear
 			progress_bar.value=clampf(race_progress,0,float(world.track.length))
 			if is_instance_valid(minimap):
 				minimap.progress=race_progress

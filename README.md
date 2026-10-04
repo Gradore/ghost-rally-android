@@ -1,6 +1,13 @@
-# GHOST RALLY — Android simulation alpha 0.18.0
+# GHOST RALLY — Android simulation alpha 0.19.0
 
 Native Godot 4.4.1 project, Mobile/Vulkan renderer, Jolt and Terrain3D. Recovered from the public 0.10.0 source release and developed through locally verified milestones.
+
+## Changes in 0.19
+
+- Rounded tyre sidewalls, procedural tread grooves, recessed eight-spoke rally rims, metal brake discs and five bolt details. Wheel detail is batched into four material meshes per articulated wheel.
+- Correct all inward loft side/cap normals, including glass. Glossier sky-reflecting windows and a ground-colored lower sky hemisphere improve material shading. Reflection radiance is limited to 128 pixels.
+- Larger irregular mineral patches reduce gravel repetition. Gear has its own HUD label so first gear at rest no longer reads like “1 000 KM/H”; start/finish captions have darker contrast.
+- Thirteen checks pass including outward-normal and twelve-car wheel-batching regression. Android preview 0.19 exports with the existing signer; Mobile/Vulkan screenshots are from the actual game. Device FPS is unmeasured.
 
 ## Changes in 0.18
 

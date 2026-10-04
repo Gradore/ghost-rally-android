@@ -36,7 +36,7 @@ func _loft(parent: Node3D, rings: Array, mat: Material) -> void:
 	for i in range(rings.size()-1):
 		for j in rings[i].size():
 			var next: int = (j+1)%rings[i].size()
-			for vertex in [rings[i][j],rings[i+1][j],rings[i][next],rings[i][next],rings[i+1][j],rings[i+1][next]]:
+			for vertex in [rings[i][j],rings[i][next],rings[i+1][j],rings[i][next],rings[i+1][next],rings[i+1][j]]:
 				surface.add_vertex(vertex)
 	for end in [0,rings.size()-1]:
 		var center := Vector3.ZERO
@@ -45,7 +45,7 @@ func _loft(parent: Node3D, rings: Array, mat: Material) -> void:
 		for j in rings[end].size():
 			var edge_a: Vector3=rings[end][j]
 			var edge_b: Vector3=rings[end][(j+1)%rings[end].size()]
-			for vertex in [center,edge_b,edge_a] if end>0 else [center,edge_a,edge_b]:surface.add_vertex(vertex)
+			for vertex in [center,edge_a,edge_b] if end>0 else [center,edge_b,edge_a]:surface.add_vertex(vertex)
 	surface.generate_normals()
 	var instance := MeshInstance3D.new()
 	instance.mesh=surface.commit()
@@ -76,8 +76,9 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 	rear_lamps.emission_enabled=not ghost;rear_lamps.emission=Color("ed2814");rear_lamps.emission_energy_multiplier=0.02
 	var trim := _mat(Color(0.1,0.16,0.18,0.3) if ghost else Color("12171b"),0.8,0.05,ghost)
 	var glass := _mat(Color(0.15,0.35,0.45,0.3) if ghost else Color("263a44"),0.42,0.0,ghost)
-	glass.metallic=0.12
-	glass.roughness=0.25
+	glass.metallic=0.32
+	glass.roughness=0.10
+	glass.clearcoat_enabled=not ghost;glass.clearcoat=0.95;glass.clearcoat_roughness=0.08
 	glass.cull_mode=BaseMaterial3D.CULL_DISABLED
 	var chrome := _mat(Color("aeb6ba"),0.2,0.85,ghost)
 	var length := 4.87 if voc else (3.95 if car.drive=="FWD" else 4.40)
@@ -132,19 +133,7 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 			body.add_child(pivot)
 			var spin := Node3D.new();pivot.add_child(spin)
 			wheel_spins[(0 if end<0 else 2)+(0 if side<0 else 1)]=spin
-			var tyre := CylinderMesh.new()
-			tyre.top_radius=radius;tyre.bottom_radius=radius;tyre.height=0.195 if voc else 0.235;tyre.radial_segments=32
-			var tyre_mesh := MeshInstance3D.new()
-			tyre_mesh.mesh=tyre;tyre_mesh.material_override=trim;tyre_mesh.rotation.z=PI/2
-			spin.add_child(tyre_mesh)
-			var rim := CylinderMesh.new()
-			rim.top_radius=radius*0.61;rim.bottom_radius=radius*0.61;rim.height=tyre.height+0.008;rim.radial_segments=24
-			var rim_mesh := MeshInstance3D.new()
-			rim_mesh.mesh=rim;rim_mesh.material_override=chrome;rim_mesh.rotation.z=PI/2
-			spin.add_child(rim_mesh)
-			for spoke in 8:
-				var bar := _box(spin,Vector3(tyre.height+0.01,0.027,radius*1.1),Vector3.ZERO,trim)
-				bar.rotation.x=float(spoke)*PI/8.0
+			_build_wheel(spin,radius,0.195 if voc else 0.235,ghost)
 			if end<0:wheels.append(pivot)
 		var number := Label3D.new()
 		number.text="69" if voc else "27"
@@ -249,10 +238,13 @@ func update_suspension_visuals(sim: RefCounted) -> void:
 		pivot.position.y=float(hub.y)-sim.height+sim.ride_height-sim.pitch*float(hub.z)-sim.roll*float(hub.x)
 
 func _merge_static_body() -> void:
+	_merge_meshes(body)
+
+func _merge_meshes(parent: Node3D) -> void:
 	# Static panels share mesh submissions; articulated wheels and labels stay separate.
 	var batches := {}
 	var old_nodes: Array[MeshInstance3D]=[]
-	for node in body.get_children():
+	for node in parent.get_children():
 		if not node is MeshInstance3D:continue
 		old_nodes.append(node)
 		for surface in node.mesh.get_surface_count():
@@ -260,6 +252,51 @@ func _merge_static_body() -> void:
 			if not batches.has(mat):
 				var builder := SurfaceTool.new();builder.begin(Mesh.PRIMITIVE_TRIANGLES);batches[mat]=builder
 			batches[mat].append_from(node.mesh,surface,node.transform)
-	for node in old_nodes:body.remove_child(node);node.queue_free()
+	for node in old_nodes:parent.remove_child(node);node.queue_free()
 	for mat in batches:
-		var node := MeshInstance3D.new();node.mesh=batches[mat].commit();node.material_override=mat;body.add_child(node)
+		var node := MeshInstance3D.new();node.mesh=batches[mat].commit();node.material_override=mat;parent.add_child(node)
+
+func _build_wheel(spin: Node3D, radius: float, width: float, transparent: bool) -> void:
+	# A rounded shoulder and recessed spoke face replace the flat cylinder silhouette.
+	var rubber: Material=_mat(Color(0.1,0.16,0.18,0.3),0.9,0, true) if transparent else ShaderMaterial.new()
+	if not transparent:rubber.shader=load("res://assets/shaders/rally_tyre.gdshader")
+	var tyre := SurfaceTool.new();tyre.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var profile := [[-width*0.5,radius*0.61],[-width*0.55,radius*0.78],[-width*0.47,radius*0.94],[-width*0.33,radius],[width*0.33,radius],[width*0.47,radius*0.94],[width*0.55,radius*0.78],[width*0.5,radius*0.61]]
+	for ring in profile.size()-1:
+		for segment in 48:
+			for coordinate in [[ring,segment],[ring+1,segment],[ring,segment+1],[ring,segment+1],[ring+1,segment],[ring+1,segment+1]]:
+				var spec: Array=profile[coordinate[0]];var angle: float=coordinate[1]*TAU/48.0
+				var normal := Vector3(0,cos(angle),sin(angle))
+				if ring<2:normal=Vector3(-0.90,normal.y*0.42,normal.z*0.42).normalized()
+				elif ring>4:normal=Vector3(0.90,normal.y*0.42,normal.z*0.42).normalized()
+				tyre.set_normal(normal);tyre.set_uv(Vector2(coordinate[1]/48.0,coordinate[0]/7.0))
+				tyre.add_vertex(Vector3(spec[0],cos(angle)*spec[1],sin(angle)*spec[1]))
+	var tyre_node := MeshInstance3D.new();tyre_node.name="RoundedTyre";tyre_node.mesh=tyre.commit();tyre_node.material_override=rubber;spin.add_child(tyre_node)
+	var rim := _mat(Color("d3d4c9"),0.30,0.68,transparent)
+	var recess := _mat(Color("242a2b"),0.80,0.12,transparent)
+	var metal := _mat(Color("737c7e"),0.42,0.78,transparent)
+	# Barrel, brake disc and face detail use shared materials and are batched per wheel.
+	for spec in [[radius*0.60,width*0.85,recess],[radius*0.49,width*0.82,metal]]:
+		var disk := CylinderMesh.new();disk.top_radius=spec[0];disk.bottom_radius=spec[0];disk.height=spec[1];disk.radial_segments=32
+		var node := MeshInstance3D.new();node.mesh=disk;node.rotation.z=PI/2;node.material_override=spec[2];spin.add_child(node)
+	for side in [-1.0,1.0]:
+		var face: float=side*width*0.51
+		var lip := SurfaceTool.new();lip.begin(Mesh.PRIMITIVE_TRIANGLES)
+		for segment in 48:
+			var face_indices := [[0,segment],[1,segment],[0,segment+1],[0,segment+1],[1,segment],[1,segment+1]]
+			if side>0:face_indices=[[1,segment],[0,segment],[0,segment+1],[1,segment],[0,segment+1],[1,segment+1]]
+			for coordinate in face_indices:
+				var radial := radius*(0.54 if coordinate[0]==0 else 0.62)
+				var angle: float=coordinate[1]*TAU/48.0
+				lip.set_normal(Vector3(side,0,0));lip.add_vertex(Vector3(face,cos(angle)*radial,sin(angle)*radial))
+		var lip_node := MeshInstance3D.new();lip_node.mesh=lip.commit();lip_node.material_override=rim;spin.add_child(lip_node)
+		for spoke in 8:
+			var angle := spoke*TAU/8
+			var center := Vector3(face-side*0.012,cos(angle)*radius*0.34,sin(angle)*radius*0.34)
+			var bar := _box(spin,Vector3(0.025,radius*0.43,0.046),center,rim);bar.rotation.x=angle
+		var hub := CylinderMesh.new();hub.top_radius=radius*0.16;hub.bottom_radius=radius*0.16;hub.height=0.04;hub.radial_segments=16
+		var hub_node := MeshInstance3D.new();hub_node.mesh=hub;hub_node.rotation.z=PI/2;hub_node.position.x=face;hub_node.material_override=rim;spin.add_child(hub_node)
+		for bolt in 5:
+			var angle := bolt*TAU/5
+			_box(spin,Vector3(0.013,0.014,0.014),Vector3(face+side*0.024,cos(angle)*radius*0.1,sin(angle)*radius*0.1),recess)
+	_merge_meshes(spin)

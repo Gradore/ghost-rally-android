@@ -15,4 +15,5 @@ void sky(){
  vec3 horizon=mix(blue,vec3(0.95,0.77,0.53),haze*0.22);
  float disc=smoothstep(0.99991,0.99998,toward_sun);
  COLOR=mix(horizon,cloud,cover)+vec3(1.0,0.82,0.57)*(pow(toward_sun,280.0)*0.16+disc*1.8)*(1.0-cover);
+ if(EYEDIR.y<0.0){COLOR=mix(vec3(0.16,0.21,0.14),vec3(0.46,0.52,0.42),pow(1.0+EYEDIR.y,6.0));}
 }
