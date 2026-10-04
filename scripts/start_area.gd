@@ -1,7 +1,7 @@
 extends Node3D
 # Actual OSM footprints; facade details and landscaping interpreted from reference photos.
 var world: Node3D
-var plaster: StandardMaterial3D
+var plaster: Material
 var glass: StandardMaterial3D
 var stone: ShaderMaterial
 var red_roof: ShaderMaterial
@@ -150,7 +150,7 @@ func _hip_roof(parent: Node3D, points: PackedVector2Array, height: float) -> voi
 
 func configure(track_world: Node3D) -> void:
 	world=track_world
-	plaster=mat("ece7dc"); glass=mat("263f4b",0.20); glass.metallic=0.4
+	plaster=preload("res://scripts/render/materials25.gd").surface(2,Color("ece7dc")); glass=mat("263f4b",0.20); glass.metallic=0.4
 	metal=mat("8d9899",0.38)
 	stone=tile_material(Color("979d9c"),Vector2(0.14,0.14),true)
 	red_roof=tile_material(Color("9e4931"),Vector2(0.30,0.21),true)
@@ -163,7 +163,7 @@ func configure(track_world: Node3D) -> void:
 		var angle := float(i)*TAU/64.0
 		circle.append(Vector2(round_center.x,round_center.z)+Vector2(cos(angle),sin(angle))*14.0)
 		island.append(Vector2(round_center.x,round_center.z)+Vector2(cos(angle),sin(angle))*6.2)
-	polygon(circle,0.06,world._textured_material("res://assets/textures/asphalt_v10.png",Color.WHITE))
+	polygon(circle,0.06,preload("res://scripts/render/materials25.gd").surface(0))
 	polygon(island,0.13,stone)
 	var plaza: Vector3= world.geo_to_world(51.57512,14.01014)
 	var paved := box(self,plaza+Vector3(0,0.025,0),Vector3(37,0.045,48),tile_material(Color("a08e83"),Vector2(0.24,0.12),true)); paved.rotation.y=world.metric_rotation

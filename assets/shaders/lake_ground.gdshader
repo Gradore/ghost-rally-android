@@ -4,6 +4,7 @@ uniform sampler2D relief : filter_linear;
 uniform sampler2D grass : source_color,filter_linear_mipmap_anisotropic,repeat_enable;
 uniform vec2 low;
 uniform vec2 span;
+uniform sampler2D atlas:source_color,filter_linear_mipmap_anisotropic;
 varying vec2 world_uv;
 varying vec3 wp;
 void vertex(){
@@ -17,6 +18,10 @@ void vertex(){
 }
 void fragment(){
  if(texture(relief,world_uv).b>0.5){discard;}
- ALBEDO=texture(grass,wp.xz/8.0).rgb*vec3(0.68,0.72,0.63);
+ vec2 local=mix(vec2(0.012),vec2(0.988),fract(wp.xz/1.25));
+ vec3 meadow=texture(atlas,(vec2(1,1)+local)/vec2(3,2)).rgb;
+ vec3 sand=texture(atlas,(vec2(0,1)+local)/vec2(3,2)).rgb;
+ float bank=1.0-smoothstep(0.04,0.12,texture(relief,world_uv).r);
+ ALBEDO=mix(meadow,sand,bank);
  ROUGHNESS=1.0;
 }

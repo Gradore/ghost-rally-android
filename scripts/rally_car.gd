@@ -41,7 +41,9 @@ func _loft(parent: Node3D, rings: Array, mat: Material) -> void:
 				var ring_i: int=pair[0];var corner: int=pair[1];var count: int=rings[ring_i].size()
 				var tangent: Vector3=rings[ring_i][(corner+1)%count]-rings[ring_i][(corner-1+count)%count]
 				var along: Vector3=rings[mini(ring_i+1,rings.size()-1)][corner]-rings[maxi(0,ring_i-1)][corner]
-				var normal := along.cross(tangent).normalized()
+				var face_along: Vector3=rings[i+1][j]-rings[i][j]
+				var face_across: Vector3=rings[i][next]-rings[i][j]
+				var normal := face_along.cross(face_across).normalized()
 				surface.set_normal(normal);surface.set_uv(Vector2(rings[ring_i][corner].z,rings[ring_i][corner].y));surface.add_vertex(rings[ring_i][corner])
 	for end in [0,rings.size()-1]:
 		var center := Vector3.ZERO
@@ -114,15 +116,20 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 		rings.append([Vector3(-half*0.94,bottom,z),Vector3(-half,bottom+0.08,z),Vector3(-half,top-0.09,z),Vector3(-half*0.92,top,z),Vector3(half*0.92,top,z),Vector3(half,top-0.09,z),Vector3(half,bottom+0.08,z),Vector3(half*0.94,bottom,z)])
 	_loft(body,rings,body_paint)
 	var cabin := []
-	for spec in [[-0.82,0.91,width*0.43],[-0.28,1.44,width*0.36],[0.83,1.44,width*0.36],[1.38,0.94,width*0.43]]:
+	var coupe: bool=car.id in ["strix","venom"]
+	var hatch: bool=car.drive=="FWD"
+	var roof_height := 1.31 if coupe else 1.44
+	var roof_back := 1.13 if hatch else 0.75 if voc else 0.53
+	var rear_base := 1.62 if hatch else 1.28 if voc else 1.19
+	for spec in [[-0.82,0.91,width*0.43],[-0.28,roof_height,width*0.36],[roof_back,roof_height,width*0.36],[rear_base,0.94,width*0.43]]:
 		var z: float=spec[0] if voc else float(spec[0])*0.86
 		var y: float=spec[1]
 		var half: float=spec[2]
 		cabin.append([Vector3(-half,0.90,z),Vector3(-half,y,z),Vector3(half,y,z),Vector3(half,0.90,z)])
 	_loft(body,cabin,glass)
-	_box(body,Vector3(width*0.73,0.07,1.15),Vector3(0,1.47,0.27),material)
+	_box(body,Vector3(width*0.73,0.055,roof_back+0.28),Vector3(0,roof_height+0.025,(roof_back-0.28)*0.5),material)
 	for side in [-1.0,1.0]:
-		for spec in [[-0.82,0.91,-0.28,1.44],[0.83,1.44,1.38,0.94]]:
+		for spec in [[-0.82,0.91,-0.28,roof_height],[roof_back,roof_height,rear_base,0.94]]:
 			var factor := 1.0 if voc else 0.86
 			var start := Vector3(side*width*0.405,spec[1],spec[0]*factor)
 			var end := Vector3(side*width*0.365,spec[3],spec[2]*factor)
@@ -166,10 +173,11 @@ func configure(car: Dictionary, as_ghost: bool = false, livery: int = 0) -> void
 		var badge := Label3D.new();badge.text="LOVO 940";badge.font_size=22;badge.pixel_size=0.0035
 		badge.position=Vector3(-0.43,0.88,length*0.5+0.04);badge.rotation.y=0;body.add_child(badge)
 		for side in [-1.0,1.0]:
-			_box(body,Vector3(0.19,0.34,0.042),Vector3(side*width*0.42,0.72,length*0.5+0.035),trim)
-			for part in 4:
-				var lens: Material=rear_lamps if part in [0,3] else _mat(Color("c8b9a0") if part==1 else Color("b37422"),0.25)
-				_box(body,Vector3(0.16,0.072,0.012),Vector3(side*width*0.42,0.60+part*0.081,length*0.5+0.062),lens)
+			# 940-inspired sedan horizontal clusters; no manufacturer badge.
+			_box(body,Vector3(0.54,0.21,0.042),Vector3(side*width*0.34,0.74,length*0.5+0.035),trim)
+			for part in 3:
+				var lens: Material=rear_lamps if part==0 else _mat(Color("c8b9a0") if part==2 else Color("b37422"),0.25)
+				_box(body,Vector3(0.158,0.178,0.015),Vector3(side*(width*0.34+(part-1)*0.168),0.74,length*0.5+0.063),lens)
 			for z in [-0.65,0.35,1.0]:_box(body,Vector3(0.013,0.22,0.018),Vector3(side*width*0.504,0.78,z),trim)
 	if not ghost:
 		for side in [-1.0,1.0]:

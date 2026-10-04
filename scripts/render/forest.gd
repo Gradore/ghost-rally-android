@@ -101,14 +101,14 @@ static func broadleaf_mesh(variant: int=0, low_detail: bool=false) -> ArrayMesh:
 				var leaf_center := center+Vector3(rng.randf_range(-1.1,1.1),rng.randf_range(-0.65,0.8),rng.randf_range(-1.1,1.1))
 				var shade := lerpf(0.65,1.05,clampf((leaf_center.y-3.0)/4.0,0,1))
 				var tint := Color(rng.randf_range(0.83,1.07),rng.randf_range(0.9,1.1),rng.randf_range(0.8,1.0))*shade
-				var uv0 := Vector2(rng.randf_range(0.08,0.55),rng.randf_range(0.08,0.34))
+				var uv0 := Vector2.ZERO
 				for pair in [[leaf_center-right-up,Vector2(0,1)],[leaf_center-right+up,Vector2(0,0)],[leaf_center+right-up,Vector2(1,1)],[leaf_center+right-up,Vector2(1,1)],[leaf_center-right+up,Vector2(0,0)],[leaf_center+right+up,Vector2(1,0)]]:
-					leaves.set_normal((pair[0]-Vector3(0,4.4,0)).normalized());leaves.set_color(tint);leaves.set_uv(uv0+pair[1]*Vector2(0.24,0.24));leaves.set_uv2(pair[1]);leaves.add_vertex(pair[0])
+					leaves.set_normal((pair[0]-Vector3(0,4.4,0)).normalized());leaves.set_color(tint);leaves.set_uv(uv0+pair[1]);leaves.set_uv2(pair[1]);leaves.add_vertex(pair[0])
 	wood.generate_normals();wood.generate_tangents();var result := wood.commit()
 	leaves.commit(result)
 	var bark := StandardMaterial3D.new();bark.albedo_texture=load("res://assets/nature/bark_diff.jpg");bark.albedo_color=Color(0.65,0.62,0.55);bark.roughness=0.95
 	result.surface_set_material(0,bark)
-	var leaf_mat := ShaderMaterial.new();leaf_mat.shader=load("res://assets/shaders/broadleaf.gdshader");leaf_mat.set_shader_parameter("leaf_tex",load("res://assets/textures/oak_v10.png"));result.surface_set_material(1,leaf_mat)
+	var leaf_mat := ShaderMaterial.new();leaf_mat.shader=load("res://assets/shaders/broadleaf.gdshader");leaf_mat.set_shader_parameter("leaf_tex",load("res://assets/textures/oak_branch25.png"));result.surface_set_material(1,leaf_mat)
 	geometry_cache[cache_key]=result
 	return result
 

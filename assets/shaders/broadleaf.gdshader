@@ -13,11 +13,11 @@ void fragment(){
  float angle=atan(p.y,p.x);
  float irregular=0.10*sin(angle*9.0)+0.07*sin(angle*17.0+1.3);
  float shape=1.0-smoothstep(0.64,0.88,length(p)+irregular);
- ALPHA=leaf.a*shape;
+ ALPHA=leaf.a;
  ALPHA_SCISSOR_THRESHOLD=0.36;
  ALPHA_ANTIALIASING_EDGE=0.20;
  ALPHA_TEXTURE_COORDINATE=UV*vec2(textureSize(leaf_tex,0));
- ALBEDO=leaf.rgb*COLOR.rgb*vec3(0.52,0.75,0.40);
+ ALBEDO=leaf.rgb*COLOR.rgb*vec3(0.88,0.94,0.84);
  float vein=exp(-abs(p.x)*45.0)*0.12;
  ALBEDO*=1.0+vein;
  ROUGHNESS=0.88;

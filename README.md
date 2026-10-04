@@ -1,5 +1,12 @@
 # GHOST RALLY — Android simulation alpha 0.24.0
 
+## 0.25.0 — graphic materials and vehicle silhouettes
+
+New synthetic photo-style asphalt/brick/plaster/sand/grass/gravel atlas, panoramic cloud sky and transparent oak branches; animated water with sky reflections. Applied to Rostock/Großräschen with original route, footprint and height data retained. Lovo sedan rear lamps and roof profile corrected, other cars gain distinct hatch/coupe/sedan silhouettes, garage illumination improved. Native controls/physics from 0.24 remain unchanged.
+
+30 m reference CSVs: `docs/reference-grid25/`, 535 Großräschen and 522 Rostock stations. **No Street View screenshot collection was performed**, and coverage remains unverified; see `docs/REFERENCE-GRID-0.25.md`. Materials are synthetic, not local photographic copies. Original detailed vehicle GLBs can be integrated via the existing adapter; see `docs/MODEL_IMPORT.md`.
+
+
 Native Godot 4.4.1 project, Mobile/Vulkan renderer, Jolt and Terrain3D. Recovered from the public 0.10.0 source release and developed through locally verified milestones.
 
 ## Changes in 0.24

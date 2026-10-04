@@ -153,17 +153,7 @@ func configure(track_world: TrackWorld) -> void:
 	world=track_world
 	var data: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://assets/data/mv_rostock.json"))
 	street_reference=JSON.parse_string(FileAccess.get_file_as_string("res://assets/data/streetview_reference.json"))
-	var facade_shader := Shader.new()
-	facade_shader.code="""shader_type spatial; render_mode cull_disabled;
-void fragment(){
- vec2 p=UV*vec2(12.0,18.0);p.x+=mod(floor(p.y),2.0)*0.5;
- vec2 edge=min(fract(p),1.0-fract(p));vec2 aa=fwidth(p);
- float joint=smoothstep(0.018-aa.x,0.04+aa.x,edge.x)*smoothstep(0.018-aa.y,0.04+aa.y,edge.y);
- float brick=step(COLOR.g,COLOR.r*0.78);
- float variation=fract(sin(dot(floor(p),vec2(17.4,71.3)))*17471.13);
- ALBEDO=COLOR.rgb*mix(0.97,0.80+joint*0.20,brick)*(0.96+variation*0.04);ROUGHNESS=0.9;
-}"""
-	var facade := ShaderMaterial.new();facade.shader=facade_shader;wall_material=facade
+	wall_material=preload("res://scripts/render/materials25.gd").surface(6,Color.WHITE,true)
 	var roof := ShaderMaterial.new();roof.shader=preload("res://assets/shaders/roof24.gdshader");roof_material=roof
 	glass=StandardMaterial3D.new();glass.albedo_color=Color("344a55");glass.roughness=0.24;glass.metallic=0.35;glass.cull_mode=BaseMaterial3D.CULL_DISABLED
 	for b in data.buildings:_building(b)
@@ -180,9 +170,9 @@ void fragment(){
 		var mat := ShaderMaterial.new();mat.shader=preload("res://assets/shaders/rural_ground24.gdshader")
 		mat.set_shader_parameter("albedo_tex",load("res://assets/nature/forrest_ground_01_diff.jpg"));mat.set_shader_parameter("normal_tex",load("res://assets/nature/forrest_ground_01_nor_gl.jpg"))
 		mat.set_shader_parameter("tint",tint*0.65);mat.set_shader_parameter("farmland",area.kind=="farmland")
-		_ground(p,mat,-0.06)
+		_ground(p,world._water_material() if area.kind=="water" else preload("res://scripts/render/materials25.gd").surface(4,Color("b8c294")) if area.kind not in ["wood","forest","farmland"] else mat,-0.06)
 	# Local connecting streets, including the bend, driveway junctions and farm access roads.
-	var paved: Material=world._textured_material("res://assets/textures/asphalt_v10.png",Color("929b98"))
+	var paved: Material=preload("res://scripts/render/materials25.gd").surface(0)
 	var paving := ShaderMaterial.new();paving.shader=preload("res://assets/shaders/street_paving.gdshader")
 	var dirt: Material=world._textured_material("res://assets/nature/gravel_floor_diff.jpg",Color("b4a586"))
 	for road in data.roads:
@@ -210,7 +200,7 @@ void fragment(){
 			for side in [-1.0,1.0]:
 				var x: Vector3 = a+n*side*0.7175+Vector3.UP*0.10;var y: Vector3 = b+n*side*0.7175+Vector3.UP*0.10
 				_quad(rails,x-n*0.035,x+n*0.035,y-n*0.035,y+n*0.035,Vector3.UP,Color.WHITE)
-	var water: Material=world._material(Color("3d6572"),0.24)
+	var water: Material=world._water_material()
 	for ll in data.get("streams",[]):
 		var pts := _polygon(ll)
 		for i in range(pts.size()-1):

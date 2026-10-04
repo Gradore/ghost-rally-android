@@ -1,0 +1,21 @@
+extends SceneTree
+func _initialize() -> void:call_deferred("run_test")
+func run_test() -> void:
+ var material=preload("res://scripts/render/materials25.gd")
+ for k in range(7):
+  var m: ShaderMaterial=material.surface(k)
+  assert(m==material.surface(k),"materials share bounded cache")
+  assert(m.get_shader_parameter("atlas")!=null,"atlas exists")
+ var sky: Texture2D=load("res://assets/textures/sky25.png")
+ assert(absf(float(sky.get_width())/sky.get_height()-2)<0.01,"latlong projection aspect")
+ var leaf: Image=load("res://assets/textures/oak_branch25.png").get_image()
+ assert(leaf.detect_alpha()!=Image.ALPHA_NONE,"foliage cutout retains alpha")
+ var terrain=preload("res://scripts/lake_terrain.gd")
+ var h := Image.create(3,1,false,Image.FORMAT_RF)
+ h.set_pixel(0,0,Color(0,0,0));h.set_pixel(1,0,Color(-5.35,0,0));h.set_pixel(2,0,Color(-5.9,0,0))
+ var b: PackedByteArray=terrain.shore_control(h).get_data()
+ assert(((b.decode_u32(0)>>14)&255)==0,"upland meadow")
+ assert(((b.decode_u32(4)>>14)&255)>100 and ((b.decode_u32(4)>>14)&255)<150,"blended sand shore")
+ assert(((b.decode_u32(8)>>14)&255)==255,"low shore sand")
+ assert(h.get_pixel(1,0).r==-5.35 or absf(h.get_pixel(1,0).r+5.35)<0.001,"source heights untouched")
+ print("PASS: shared material atlas, sky projection, leaf alpha, encoded shore blend; terrain heights preserved");quit()

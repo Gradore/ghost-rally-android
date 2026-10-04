@@ -534,6 +534,7 @@ func build(data: Dictionary) -> void:
 		ground.position=Vector3(relief_low.x+relief_span.x*0.5,0,relief_low.y+relief_span.y*0.5)
 		var terrain := ShaderMaterial.new(); terrain.shader=load("res://assets/shaders/lake_ground.gdshader")
 		terrain.set_shader_parameter("relief",load("res://assets/data/lake_relief.png"))
+		terrain.set_shader_parameter("atlas",load("res://assets/textures/material_atlas25.png"))
 		terrain.set_shader_parameter("grass",load("res://assets/nature/forrest_ground_01_diff.jpg"))
 		terrain.set_shader_parameter("low",relief_low); terrain.set_shader_parameter("span",relief_span)
 		ground.material_override=terrain
@@ -556,6 +557,7 @@ func build(data: Dictionary) -> void:
 	shoulder.set_shader_parameter("grass_normal",load("res://assets/nature/forrest_ground_01_nor_gl.jpg"))
 	shoulder.set_shader_parameter("gravel_normal",load("res://assets/nature/gravel_floor_nor_gl.jpg"))
 	shoulder.set_shader_parameter("half_width",road_width*0.5)
+	shoulder.set_shader_parameter("atlas",load("res://assets/textures/material_atlas25.png"))
 	_add_strip(road,road_width+3.0,0.015,shoulder)
 	var driving_surface: Material = _textured_material("res://assets/textures/asphalt_v10.png" if asphalt else "res://assets/nature/gravel_floor_diff.jpg",Color(0.82,0.84,0.83) if asphalt else Color(0.92,0.86,0.75))
 	if not asphalt:
@@ -564,9 +566,9 @@ func build(data: Dictionary) -> void:
 		gravel_shader.set_shader_parameter("albedo_tex",load("res://assets/nature/gravel_floor_diff.jpg"))
 		gravel_shader.set_shader_parameter("normal_tex",load("res://assets/nature/gravel_floor_nor_gl.jpg"))
 		gravel_shader.set_shader_parameter("road_half_width",road_width*0.5)
+		gravel_shader.set_shader_parameter("atlas",load("res://assets/textures/material_atlas25.png"))
 		driving_surface=gravel_shader
-	var asphalt_mat := ShaderMaterial.new();asphalt_mat.shader=preload("res://assets/shaders/asphalt24.gdshader")
-	asphalt_mat.set_shader_parameter("albedo_tex",load("res://assets/textures/asphalt_v10.png"));asphalt_mat.set_shader_parameter("normal_tex",load("res://assets/textures/asphalt_normal.png"))
+	var asphalt_mat := preload("res://scripts/render/materials25.gd").surface(0)
 	if asphalt:driving_surface=asphalt_mat
 	if track.get("mapped_mv",false):
 		var paved: Material=asphalt_mat
@@ -725,18 +727,7 @@ func _grass_mesh() -> ArrayMesh:
 	return st.commit()
 
 func _water_material() -> ShaderMaterial:
-	var shader := Shader.new()
-	shader.code="""shader_type spatial;
-varying vec3 wp;
-void vertex(){wp=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;}
-void fragment(){
- float a=sin(wp.x*1.6+wp.z*0.7+TIME*1.1);
- float b=sin(wp.x*0.4-wp.z*2.2+TIME*0.8);
- NORMAL=normalize(NORMAL+vec3(a*0.035,b*0.035,0.0));
- ALBEDO=mix(vec3(0.025,0.15,0.21),vec3(0.075,0.29,0.38),a*0.15+0.5);
- ROUGHNESS=0.32; METALLIC=0.10; SPECULAR=0.40;
-}"""
-	var m := ShaderMaterial.new(); m.shader=shader; return m
+	var m := ShaderMaterial.new();m.shader=preload("res://assets/shaders/water25.gdshader");return m
 
 func _start_asphalt() -> void:
 	var st := SurfaceTool.new(); st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -746,7 +737,7 @@ func _start_asphalt() -> void:
 		for v in [a-side,b-side,a+side,a+side,b-side,b+side]:
 			st.set_normal(Vector3.UP); st.set_uv(Vector2(v.x,v.z)/4.0); st.add_vertex(v+Vector3.UP*0.065)
 	var m := MeshInstance3D.new(); m.mesh=st.commit()
-	var mat := ShaderMaterial.new();mat.shader=preload("res://assets/shaders/asphalt24.gdshader");mat.set_shader_parameter("albedo_tex",load("res://assets/textures/asphalt_v10.png"));mat.set_shader_parameter("normal_tex",load("res://assets/textures/asphalt_normal.png"));m.material_override=mat
+	m.material_override=preload("res://scripts/render/materials25.gd").surface(0)
 	road.add_child(m)
 
 func _surface_segment(progress: float) -> Dictionary:

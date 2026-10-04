@@ -163,8 +163,9 @@ func build_scene() -> void:
 	sky_colors.sky_horizon_color=Color("c3d6df")
 	sky_colors.ground_bottom_color=Color("344f49")
 	sky_colors.ground_horizon_color=Color("82988c")
-	var cloud_sky := ShaderMaterial.new()
-	cloud_sky.shader=load("res://assets/shaders/day_sky.gdshader")
+	var cloud_sky := PanoramaSkyMaterial.new()
+	cloud_sky.panorama=load("res://assets/textures/sky25.png")
+	cloud_sky.energy_multiplier=0.85
 	atmosphere.sky_material=cloud_sky
 	atmosphere.radiance_size=Sky.RADIANCE_SIZE_128
 	environment.sky=atmosphere
@@ -182,7 +183,6 @@ func build_scene() -> void:
 	add_child(sky)
 	sun = DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-38,35,0)
-	cloud_sky.set_shader_parameter("sun_direction",sun.transform.basis.z)
 	sun.light_color = Color("fff0d7")
 	sun.light_energy = 1.18
 	sun.shadow_enabled = true
@@ -375,7 +375,7 @@ func apply_graphics() -> void:
 	var detail: bool=save.get("graphics","balanced")=="detail"
 	var in_showroom := is_instance_valid(showroom) and showroom.visible
 	sky.environment.fog_enabled=not in_showroom
-	sky.environment.ambient_light_energy=0.24 if in_showroom else 0.32
+	sky.environment.ambient_light_energy=0.32 if in_showroom else 0.32
 	get_viewport().scaling_3d_scale=1.0 if in_showroom or detail else 0.65 if economy else 0.80
 	get_viewport().msaa_3d=Viewport.MSAA_2X if in_showroom or detail else Viewport.MSAA_DISABLED
 	get_viewport().screen_space_aa=Viewport.SCREEN_SPACE_AA_FXAA if not economy and not in_showroom and not detail else Viewport.SCREEN_SPACE_AA_DISABLED
