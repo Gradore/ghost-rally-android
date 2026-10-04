@@ -11,7 +11,7 @@ static func mesh() -> ArrayMesh:
 			var angle := branch*TAU/6+tier*0.61+rng.randf_range(-0.2,0.2)
 			var along := Vector3(cos(angle),0,sin(angle));var side := Vector3(-sin(angle),0,cos(angle))
 			var base := Vector3(0,y,0);var tip := base+along*span+Vector3.UP*0.14
-			for face in 3:
+			for face in 11:
 				var a := base+side*(0.045 if face==0 else -0.045)
 				var b := tip+Vector3.UP*0.012
 				triangle(trunk,a,b,base+Vector3.UP*0.065,Vector2.ZERO,Vector2(1,1),Vector2(0,1))
@@ -76,14 +76,15 @@ static func broadleaf_mesh() -> ArrayMesh:
 		tube(wood,start,end,0.095,0.025)
 		for cluster in 5:
 			var center := end+Vector3(rng.randf_range(-0.7,0.7),rng.randf_range(-0.15,1.5),rng.randf_range(-0.7,0.7))
-			for face in 3:
+			for face in 11:
 				var a := rng.randf_range(-PI,PI)
-				var right := Vector3(cos(a),0,sin(a))*rng.randf_range(0.75,1.15)
-				var up := Vector3(-sin(a)*0.2,0.8,cos(a)*0.2)
-				if face==2:up=Vector3(-sin(a),0.2,cos(a))*0.9
+				var right := Vector3(cos(a),0,sin(a))*rng.randf_range(0.36,0.62)
+				var up := Vector3(-sin(a)*0.15,0.45,cos(a)*0.15)
+				if face%3==2:up=Vector3(-sin(a),0.15,cos(a))*0.5
+				var leaf_center := center+Vector3(rng.randf_range(-0.8,0.8),rng.randf_range(-0.5,0.65),rng.randf_range(-0.8,0.8))
 				var tint := Color(rng.randf_range(0.83,1.07),rng.randf_range(0.9,1.1),rng.randf_range(0.8,1.0))
 				var uv0 := Vector2(rng.randf_range(0.08,0.55),rng.randf_range(0.08,0.34))
-				for pair in [[center-right-up,Vector2(0,1)],[center-right+up,Vector2(0,0)],[center+right-up,Vector2(1,1)],[center+right-up,Vector2(1,1)],[center-right+up,Vector2(0,0)],[center+right+up,Vector2(1,0)]]:
+				for pair in [[leaf_center-right-up,Vector2(0,1)],[leaf_center-right+up,Vector2(0,0)],[leaf_center+right-up,Vector2(1,1)],[leaf_center+right-up,Vector2(1,1)],[leaf_center-right+up,Vector2(0,0)],[leaf_center+right+up,Vector2(1,0)]]:
 					leaves.set_color(tint);leaves.set_uv(uv0+pair[1]*Vector2(0.24,0.24));leaves.set_uv2(pair[1]);leaves.add_vertex(pair[0])
 	wood.generate_normals();wood.generate_tangents();var result := wood.commit()
 	leaves.generate_normals();leaves.commit(result)

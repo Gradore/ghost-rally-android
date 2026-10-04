@@ -1,6 +1,12 @@
-# GHOST RALLY — Android simulation alpha 0.17.0
+# GHOST RALLY — Android simulation alpha 0.18.0
 
 Native Godot 4.4.1 project, Mobile/Vulkan renderer, Jolt and Terrain3D. Recovered from the public 0.10.0 source release and developed through locally verified milestones.
+
+## Changes in 0.18
+
+- Broadleaf crowns use smaller irregular leaf clusters with gaps instead of large circular cards. Pines use alpha-to-coverage with the existing 2x MSAA to soften cutout edges. Sky includes a directional sun disc and warm haze tied to the scene light.
+- Correct outward rear-cap normals, sampled curved wheel openings, four-segment VOC-inspired lamps, reduced badge size and lower idle/braking emissive intensity. Static body mesh surfaces are batched by shared material; articulated wheels, labels and collision shapes remain separate.
+- Actual close three-quarter vehicle capture complements the start, lake, chase and three-WP views. Twelve groups and stored route integrity pass; phone frame rate remains unmeasured.
 
 ## Changes in 0.17
 
@@ -53,7 +59,7 @@ godot --headless --export-debug "Android Preview" ../outputs/GhostRally-0.14.0-p
 
 AGENTS.md lists the complete test suite. docs/VALIDATION-0.14.md records acceptance, limitations and the Dummy-audio shutdown warning. Captures come from actual Mobile/Vulkan rendering with desktop software rendering; they are not phone benchmarks.
 
-Preview package: com.ghostrally.racer.preview, versionCode 17. It retains the previous debug signer and can update the previous preview. Production signing material is absent; do not replace it. No production AAB or Play Store submission is claimed.
+Preview package: com.ghostrally.racer.preview, versionCode 18. It retains the previous debug signer and can update the previous preview. Production signing material is absent; do not replace it. No production AAB or Play Store submission is claimed.
 
 ## Remaining work and credits
 

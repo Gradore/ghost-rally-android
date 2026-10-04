@@ -173,6 +173,7 @@ func build_scene() -> void:
 	add_child(sky)
 	sun = DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-22,35,0)
+	cloud_sky.set_shader_parameter("sun_direction",sun.transform.basis.z)
 	sun.light_color = Color("ffdfb2")
 	sun.light_energy = 1.18
 	sun.shadow_enabled = true
