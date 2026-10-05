@@ -70,6 +70,7 @@ func building(data: Dictionary) -> void:
 	var root := Node3D.new();root.name="Building_"+str(data.id);root.set_meta("osm_id",str(data.id));root.set_meta("footprint",points);add_child(root)
 	if data.kind=="terraces":
 		_terrace_building(root,points,height);return
+	var detail := SurfaceTool.new();detail.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var wall := SurfaceTool.new(); wall.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for i in points.size():
 		var a := Vector3(points[i].x,0,points[i].y)
@@ -81,6 +82,7 @@ func building(data: Dictionary) -> void:
 			wall.set_normal(normal); wall.add_vertex(v)
 		var bay_count := int(edge.length()/3.2)
 		var levels := 3 if data.kind=="hotel" else 1 if data.kind in ["tourist","sports","terraces","pavilion"] else 2
+		preload("res://scripts/render/facade_details27.gd").face(detail,a,b,normal,height,levels,i==0)
 		for floor_id in levels:
 			for bay in bay_count:
 				var at := a.lerp(b,(float(bay)+0.5)/maxf(bay_count,1))+Vector3.UP*(1.8+floor_id*3.15)+normal*0.04
@@ -91,6 +93,7 @@ func building(data: Dictionary) -> void:
 				var sill := box(root,at+normal*0.14-Vector3.UP*0.85,Vector3(1.40,0.10,0.28),plaster); sill.rotation.y=frame.rotation.y
 		line(a+Vector3.UP*0.22,b+Vector3.UP*0.22,0.16,0.44,mat("9c9c93"))
 		line(a+Vector3.UP*(height-0.15),b+Vector3.UP*(height-0.15),0.28,0.24,plaster)
+	var details := MeshInstance3D.new();detail.generate_tangents();details.mesh=detail.commit();details.material_override=plaster;details.visibility_range_end=180;root.add_child(details)
 	var walls := MeshInstance3D.new(); walls.mesh=wall.commit(); walls.material_override=plaster; root.add_child(walls)
 	walls.create_trimesh_collision()
 	for body_node in walls.get_children():

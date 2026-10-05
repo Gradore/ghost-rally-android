@@ -17,3 +17,7 @@ Real Racing 3 is an input-design reference only; no game code, audio, logo or in
 ## 0.25 synthetic assets
 
 Material atlas, panorama sky and oak branch: original synthetic assets generated with built-in Imagegen for this project; prompts in assets/textures/README.md. No Street View screenshots downloaded or shipped. Existing OSM coordinates and all earlier source/license notices retained.
+
+## 0.27 additions
+- ambientCG Plaster002 / Bricks001: CC0 1.0, https://docs.ambientcg.com/license/. Unmodified 1K color/normal/roughness maps; source hashes in assets/textures/facades27/provenance.json.
+- Rostock elevation: © GeoBasis-DE/M-V, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), DGM1/DGM5 via https://www.geodaten-mv.de/dienste/dgm_wcs, retrieved 2026-10-05. Modified: local coordinate conversion, relative start datum, bilinear 16m grid and road profile. Attribution also appears in game credits.

@@ -1,7 +1,7 @@
 extends RefCounted
 class_name GameData
 
-const PHYSICS_VERSION := "24.mobile.1"
+const PHYSICS_VERSION := "27.terrain.1"
 const CARS := [
 	{"id":"kite", "name":"KITE SPRINT", "class":"C", "drive":"FWD", "color":Color("f2bd45"), "mass":1080.0, "power":190.0, "grip":14.0, "rear_grip":12.5, "top":61.0, "steer":3.15},
 	{"id":"mira", "name":"MIRA TURBO", "class":"B", "drive":"FWD", "color":Color("ef8f69"), "mass":1160.0, "power":235.0, "grip":13.5, "rear_grip":11.8, "top":67.0, "steer":3.0},

@@ -63,3 +63,8 @@ Clipped complex pitched roofs retain original polygons and authored ridge/eave h
 - Underground-tagged/layer-negative building references are kept in `footprint_reference` but not rendered as solid above-ground houses. Courtyard paving is decorative and not a surveyed parking map. Above-ground houses retain their original footprint colliders.
 - Bus stop source node and local road segments remain geographic references; sidewalk offsets, orange bin, lamp spacing and shelter dimensions are assumptions.
 - Großräschen roundabout decorative alignment now follows the existing source polyline centre. Island vegetation, planters and flower placement are artistic approximations; the original driving route is unchanged.
+
+## 0.27
+Facade trims, entrance location/size and window detail are interpreted (_assumption: true). Official Rostock DGM source heights are measured-data derivatives; runtime 16m resampling, road-centre profile, level building foundations and gradient projection are adaptations. See GRAPHICS-TERRAIN-0.27.md. No surveyed facade or full photorealism claim.
+
+0.27 rendering adaptation: road and tyre surface 0.16m above the resampled DGM to keep the coarse terrain under the asphalt; DGM-derived crossfall applied to road edges/contact.

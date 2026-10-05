@@ -5,7 +5,8 @@ func run_test() -> void:
  for k in range(7):
   var m: ShaderMaterial=material.surface(k)
   assert(m==material.surface(k),"materials share bounded cache")
-  assert(m.get_shader_parameter("atlas")!=null,"atlas exists")
+  if k in [1,2,6]:assert(m.get_shader_parameter("plaster_color")!=null and m.get_shader_parameter("brick_normal")!=null,"free PBR facade maps exist")
+  else:assert(m.get_shader_parameter("atlas")!=null,"atlas exists")
  var sky: Texture2D=load("res://assets/textures/sky25.png")
  assert(absf(float(sky.get_width())/sky.get_height()-2)<0.01,"latlong projection aspect")
  var leaf: Image=load("res://assets/textures/oak_branch25.png").get_image()

@@ -22,6 +22,8 @@ var tree_centers := PackedVector2Array()
 var tree_radii := PackedFloat32Array()
 var water_polygons: Array[PackedVector2Array] = []
 var terrain3d: Node3D
+var official_height: RefCounted
+var official_road := PackedFloat32Array()
 var relief: Image
 var relief_low := Vector2.ZERO
 var relief_span := Vector2.ONE
@@ -423,8 +425,13 @@ func _add_strip(parent: Node3D, width: float, y: float, mat: Material, offset: f
 		var c := c1+r1*(o1-w1*0.5)+Vector3.UP*y
 		var d := c1+r1*(o1+w1*0.5)+Vector3.UP*y
 		a.y+=road_relief(p0);b.y+=road_relief(p0);c.y+=road_relief(p1);d.y+=road_relief(p1)
+		if official_height!=null:
+			var base0: float=official_height.sample(c0);var base1: float=official_height.sample(c1)
+			a.y+=official_height.sample(a)-base0;b.y+=official_height.sample(b)-base0
+			c.y+=official_height.sample(c)-base1;d.y+=official_height.sample(d)-base1
 		vertices.append_array(PackedVector3Array([a,c,b,b,c,d]))
-		for j in 6: normals.append(Vector3.UP)
+		var face_normal := (c-a).cross(b-a).normalized()
+		for j in 6: normals.append(face_normal)
 		var u0 := (o0-w0*0.5)/4.0
 		var u1 := (o0+w0*0.5)/4.0
 		var u2 := (o1-w1*0.5)/4.0
@@ -513,6 +520,9 @@ func _finish_gate(progress: float, label_color: Color) -> void:
 func build(data: Dictionary) -> void:
 	track = data.duplicate()
 	_load_route()
+	if track.get("mapped_mv",false):
+		official_height=preload("res://scripts/rostock_height27.gd").new()
+		for i in range(int(ceil(float(track.length)/5))+2):official_road.append(official_height.sample(center_at(i*5.0)))
 	road_width=6.4 if track.surface=="ASPHALT" else 5.6
 	add_child(road)
 	add_child(scenery)
@@ -539,6 +549,8 @@ func build(data: Dictionary) -> void:
 		terrain.set_shader_parameter("low",relief_low); terrain.set_shader_parameter("span",relief_span)
 		ground.material_override=terrain
 	scenery.add_child(ground)
+	if official_height!=null:
+		ground.visible=false;official_height.build(scenery)
 	if track.state_code=="12" and not OS.get_cmdline_user_args().has("--flat-terrain"):
 		terrain3d=load("res://scripts/lake_terrain.gd").build(scenery)
 		if terrain3d!=null: ground.visible=false
@@ -755,6 +767,7 @@ func gravel_at(progress: float) -> bool:
 	return track.surface=="GRAVEL" and not (track.state_code=="12" and progress+float(track.get("source_offset",0))<270.0)
 
 func ground_height(at: Vector3) -> float:
+	if official_height!=null:return official_height.sample(at)-0.08
 	if terrain3d!=null:
 		var actual: float=terrain3d.get("data").call("get_height",at)
 		if is_finite(actual):return actual
@@ -768,7 +781,9 @@ func ground_height(at: Vector3) -> float:
 
 func contact_height(at: Vector3, reference: float) -> float:
 	var near := _nearest(at,reference)
-	if near.y<=pow(road_width_at(near.x)*0.5,2):return road_relief(near.x)
+	if near.y<=pow(road_width_at(near.x)*0.5,2):
+		var crossfall: float=official_height.sample(at)-official_height.sample(center_at(near.x)) if official_height!=null else 0.0
+		return road_relief(near.x)+crossfall
 	return ground_height(at)
 
 # ASSUMPTION: subtle generated gravel undulations, not surveyed topography.
@@ -778,6 +793,9 @@ func road_relief(progress: float) -> float:
 	return lerpf(_road_relief_sample(p0),_road_relief_sample(p0+5),fposmod(progress,5.0)/5.0)
 
 func _road_relief_sample(progress: float) -> float:
+	if not official_road.is_empty():
+		var index := clampi(int(round(progress/5)),0,official_road.size()-1)
+		return official_road[index]+0.16
 	if not gravel_at(progress):return 0.0
 	var fade := clampf((progress+float(track.get("source_offset",0))-270)/25,0,1) if track.state_code=="12" else clampf(progress/25,0,1)
 	return (sin(progress*TAU/23)*0.023+sin(progress*TAU/41)*0.012)*fade

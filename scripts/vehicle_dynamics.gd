@@ -184,7 +184,8 @@ func _tick(velocity: Vector2,yaw: float,steering: float,throttle: float,brake: f
 	rear_slip=(float(wheels[2].alpha)+float(wheels[3].alpha))*0.5
 	var drag := float(vehicle.get("drag_n_per_mps2",0.40))*u*absf(u)+normal_total*float(surface.rolling)*clampf(u,-1,1)
 	longitudinal_accel=(total.x-drag)/mass;lateral_accel=total.y/mass
-	velocity+=(forward*longitudinal_accel+right*lateral_accel)*tick_dt
+	var gradient: Vector2=setup.get("terrain_gradient",Vector2.ZERO)
+	velocity+=(forward*longitudinal_accel+right*lateral_accel-gradient*9.81/(1+gradient.length_squared()))*tick_dt
 	yaw_rate=clampf(yaw_rate+moment/(mass*wb*wb*0.26)*tick_dt,-2.5,2.5)
 	if absf(u)<12.0 and not handbrake and normal_total>mass*9.81*0.5:
 		# Blend low-speed tyre dynamics toward rolling contact; fade out before fast corners.

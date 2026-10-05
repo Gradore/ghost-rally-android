@@ -34,7 +34,7 @@ func run_test() -> void:
 	var before: int= game.world.get_instance_id();game.show_pause();game.settings_return="pause";game.show_settings();game.close_settings()
 	check(game.state=="pause" and game.world.get_instance_id()==before,"settings returns to paused race")
 	game.race_progress=600;game.car.position=Vector3(10000,0,10000);game.velocity=Vector2(20,4);game.reset_to_road()
-	check(game.car.position.distance_to(game.world.center_at(600))<0.2 and game.speed==0 and game.state=="race","recovery resets to current road")
+	check(game.car.position.distance_to(game.world.center_at(600)+Vector3.UP*game.world.road_relief(600))<0.2 and game.speed==0 and game.state=="race","recovery resets to current road")
 	game.start_race();check(game.world.get_instance_id()==before,"restart reuses loaded world")
 	var mv: Node3D
 	for node in game.world.scenery.get_children():
@@ -45,17 +45,21 @@ func run_test() -> void:
 	check(bodies==mv.footprint_reference.size()-mv.below_ground_ids.size(),"all above-ground mapped buildings have collision bodies; underground garages stay open")
 	for id in mv.footprint_reference:
 		var p: PackedVector2Array=mv.footprint_reference[id]
+		var foundation := Vector2.ZERO
+		for v in p:foundation+=v
+		foundation/=float(p.size())
+		var probe_height: float=game.world.ground_height(Vector3(foundation.x,0,foundation.y))+0.08+1.2
 		if probes>=40:break
 		if int(id)%37!=0:continue
 		for edge in p.size():
 			var a: Vector2=p[edge];var b: Vector2=p[(edge+1)%p.size()]
 			if a.distance_to(b)<5:continue
 			var at := (a+b)*0.5;var normal := Vector2(-(b-a).y,(b-a).x).normalized()
-			var start := Vector3(at.x+normal.x*0.6,1.2,at.y+normal.y*0.6)
-			var end := Vector3(at.x-normal.x*0.6,1.2,at.y-normal.y*0.6)
+			var start := Vector3(at.x+normal.x*0.6,probe_height,at.y+normal.y*0.6)
+			var end := Vector3(at.x-normal.x*0.6,probe_height,at.y-normal.y*0.6)
 			var space: PhysicsDirectSpaceState3D= game.get_world_3d().direct_space_state
-			check(not space.intersect_ray(PhysicsRayQueryParameters3D.create(start,end,1)).is_empty(),"mapped wall blocks first face")
-			check(not space.intersect_ray(PhysicsRayQueryParameters3D.create(end,start,1)).is_empty(),"mapped wall blocks reverse face")
+			check(not space.intersect_ray(PhysicsRayQueryParameters3D.create(start,end,1)).is_empty(),"mapped wall blocks first face "+str(id))
+			check(not space.intersect_ray(PhysicsRayQueryParameters3D.create(end,start,1)).is_empty(),"mapped wall blocks reverse face "+str(id))
 			probes+=1;break
 	check(probes>=20,"test geographically distinct mapped wall faces")
 	var total: int=game.world.tree_centers.size()

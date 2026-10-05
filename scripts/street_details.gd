@@ -7,6 +7,7 @@ var parent: Node3D
 func material(color: String) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new();m.albedo_color=Color(color);m.roughness=0.8;return m
 func cube(at: Vector3,size: Vector3,mat: Material,angle: float=0) -> void:
+	at.y+=world.ground_height(at)+0.08
 	var key := mat.get_instance_id()
 	if not groups.has(key):groups[key]={"mat":mat,"transforms":[]}
 	groups[key].transforms.append(Transform3D(Basis(Vector3.UP,angle).scaled(size),at))
@@ -96,5 +97,5 @@ func _residential_paths(points: Array,red: Material,grey: Material,curb: Materia
 				pairs.append([at+n*float(band[0])*side+Vector3.UP*float(band[3]),at+n*float(band[1])*side+Vector3.UP*float(band[3])])
 			var st := SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
 			for i in pairs.size()-1:
-				for v in [pairs[i][0],pairs[i][1],pairs[i+1][0],pairs[i][1],pairs[i+1][1],pairs[i+1][0]]:st.set_normal(Vector3.UP);st.add_vertex(v)
+				for v in [pairs[i][0],pairs[i][1],pairs[i+1][0],pairs[i][1],pairs[i+1][1],pairs[i+1][0]]:st.set_normal(Vector3.UP);st.add_vertex(v+Vector3.UP*(world.ground_height(v)+0.08))
 			var node := MeshInstance3D.new();node.name="ContinuousResidentialPath";node.mesh=st.commit();node.material_override=band[2];node.visibility_range_end=350;parent.add_child(node)

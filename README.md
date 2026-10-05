@@ -128,3 +128,6 @@ Preview package: com.ghostrally.racer.preview, versionCode 18. It retains the pr
 Current graphics remain below the supplied reference. Authored vehicle models/interiors, richer surroundings, model-specific recorded audio, full dynamics calibration and Android device acceptance remain necessary.
 
 Map data © OpenStreetMap contributors, ODbL, https://www.openstreetmap.org/copyright . State boundaries © GeoBasis-DE/BKG (2025). Mapped stages are game environments, not driving directions. CREDITS.md lists audio and texture sources/licenses; assets/textures/README.md and assets/fonts/OFL.txt retain existing notices. Original geometry is authored for this project; proprietary game assets are not included.
+
+### 0.27: more facade detail and official Rostock heights
+Free ambientCG PBR brick/plaster; batched window trims, sills, entrances and downpipes. Rostock uses official GeoBasis-DE/M-V DGM1/DGM5 elevations including the initial climb, with matching road contact, scenery/colliders and fixed-tick slope gravity. See docs/GRAPHICS-TERRAIN-0.27.md and docs/VALIDATION-0.27.md.

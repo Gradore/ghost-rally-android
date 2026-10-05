@@ -628,7 +628,8 @@ func show_credits() -> void:
 	_label(card,"© OpenStreetMap-Mitwirkende",18,Color("c7ddd5"),Vector2(32,306),Vector2(730,28))
 	_label(card,"OSM-Geometrie vereinfacht und für das Spiel aufbereitet · ODbL",17,Color("a5c2bc"),Vector2(32,338),Vector2(730,28))
 	_label(card,"www.openstreetmap.org/copyright",16,Color("87bfb5"),Vector2(32,371),Vector2(730,28))
-	_label(card,"Die Strecken sind Spieladaptionen und keine Navigation.",17,Color("b4cbc3"),Vector2(32,424),Vector2(730,28))
+	_label(card,"HÖHEN ROSTOCK: © GeoBasis-DE/M-V · DGM1/DGM5, aufbereitet",17,Color("b4cbc3"),Vector2(32,415),Vector2(730,28))
+	_label(card,"Putz/Klinker: ambientCG · CC0 · Strecken sind Spieladaptionen",17,Color("b4cbc3"),Vector2(32,451),Vector2(730,28))
 	_button(card,"ZURÜCK",Vector2(32,500),Vector2(732,51),func(): show_settings(),true)
 
 func start_race() -> void:
@@ -764,7 +765,7 @@ func show_pause() -> void:
 
 func reset_to_road() -> void:
 	var at := clampf(race_progress,0,float(world.track.length)-5.0)
-	car.position=world.center_at(at)+Vector3.UP*0.07
+	car.position=world.center_at(at)+Vector3.UP*(0.07+world.road_relief(at))
 	yaw=world.heading_at(at);car.rotation.y=yaw
 	velocity=Vector2.ZERO;speed=0;reverse_engaged=false
 	dynamics.reset();mobile_steering.reset();touch.clear();touch_anchor.clear()
@@ -948,6 +949,10 @@ func update_vehicle(delta: float) -> void:
 	for wheel_i in 4:
 		var at := car.position+facing*axle_base*(0.5 if wheel_i<2 else -0.5)+across*( -0.73 if wheel_i%2==0 else 0.73)
 		dynamics.wheel_ground[wheel_i]=world.contact_height(at,race_progress)
+	if world.official_height!=null:
+		var gx := (world.ground_height(car.position+Vector3.RIGHT*2)-world.ground_height(car.position-Vector3.RIGHT*2))/4
+		var gz := (world.ground_height(car.position+Vector3.BACK*2)-world.ground_height(car.position-Vector3.BACK*2))/4
+		set.terrain_gradient=Vector2(gx,gz)
 	var result: Dictionary=dynamics.step(velocity,yaw,steer,throttle,brake,handbrake,reverse_engaged,cfg,set,upgrades,gravel,on_road,delta)
 	velocity=result.velocity
 	yaw=result.yaw

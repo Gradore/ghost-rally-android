@@ -1,5 +1,6 @@
 extends Node3D
 # Geographic footprints from OSM; untagged facade/roof appearance is interpreted.
+var building_base := NAN
 var world: TrackWorld
 var batches := {}
 var footprint_reference := {}
@@ -29,7 +30,7 @@ func _batch(key: String, at: Vector3, material: Material, distance: float = 500)
 
 func _tri(st: SurfaceTool, a: Vector3,b: Vector3,c: Vector3,normal: Vector3,color: Color) -> void:
 	for v in [a,b,c]:
-		st.set_color(color);st.set_normal(normal);st.set_uv(Vector2(v.x,v.z)/4.0 if absf(normal.y)>0.7 else Vector2(v.x+v.z,v.y)/3.0);st.add_vertex(v)
+		st.set_color(color);st.set_normal(normal);st.set_uv(Vector2(v.x,v.z)/4.0 if absf(normal.y)>0.7 else Vector2(v.x+v.z,v.y)/3.0);st.add_vertex(v+Vector3.UP*(building_base if is_finite(building_base) else (world.ground_height(v)+0.08 if world!=null else 0.0)))
 
 func _quad(st: SurfaceTool,a: Vector3,b: Vector3,c: Vector3,d: Vector3,n: Vector3,col: Color) -> void:
 	_tri(st,a,b,c,n,col);_tri(st,c,b,d,n,col)
@@ -93,6 +94,7 @@ func _building(data: Dictionary) -> void:
 	for v in p:mid+=v
 	mid/=float(p.size())
 	var center := Vector3(mid.x,0,mid.y)
+	building_base=world.ground_height(center)+0.08
 	var roof_points := roof_outline(p)
 	var roof_kind: String=data.tags.get("roof:shape",data.roof)
 	if roof_kind=="half-hipped":roof_kind="hipped"
@@ -114,6 +116,7 @@ func _building(data: Dictionary) -> void:
 	var levels := maxi(1,int(h/3.0))
 	var garage: bool=data.kind in ["garage","garages","shed","farm_auxiliary"]
 	var collision := SurfaceTool.new();collision.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var render_detail := modern or world._nearest(center).y<45.0*45.0
 	var near_road := true # Every mapped footprint blocks the car, including large/set-back buildings.
 	for i in p.size():
 		var a := Vector3(p[i].x,0,p[i].y);var b := Vector3(p[(i+1)%p.size()].x,0,p[(i+1)%p.size()].y)
@@ -124,6 +127,9 @@ func _building(data: Dictionary) -> void:
 		_quad(wall,a,a+Vector3.UP*h,b,b+Vector3.UP*h,n,color)
 		if near_road:_quad(collision,a,a+Vector3.UP*h,b,b+Vector3.UP*h,n,Color.WHITE)
 		if garage:continue
+		if render_detail:
+			var detail := _batch("architecturalDetail",center,wall_material,180)
+			preload("res://scripts/render/facade_details27.gd").face(detail,a+Vector3.UP*building_base,b+Vector3.UP*building_base,n,h,int(local_appearance.get("levels",levels)),i==0,modern)
 		if modern:
 			_modern_face(a,b,n,h,wall,windows,local_appearance)
 			continue
@@ -157,13 +163,13 @@ func _building(data: Dictionary) -> void:
 		pitched_polygon(p,h,cap,wall,roof_color,color)
 	else:
 		for i in Geometry2D.triangulate_polygon(p):
-			cap.set_normal(Vector3.UP);cap.set_color(roof_color);cap.set_uv(p[i]/2);cap.add_vertex(Vector3(p[i].x,h,p[i].y))
+			cap.set_normal(Vector3.UP);cap.set_color(roof_color);cap.set_uv(p[i]/2);cap.add_vertex(Vector3(p[i].x,h+building_base,p[i].y))
 
 func _ground(p: PackedVector2Array,mat: Material,y: float) -> void:
 	var st := SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var indices := Geometry2D.triangulate_polygon(p)
 	if indices.is_empty():return
-	for i in indices:st.set_normal(Vector3.UP);st.set_uv(p[i]/12);st.add_vertex(Vector3(p[i].x,y,p[i].y))
+	for i in indices:st.set_normal(Vector3.UP);st.set_uv(p[i]/12);st.add_vertex(Vector3(p[i].x,y+world.ground_height(Vector3(p[i].x,0,p[i].y))+0.08,p[i].y))
 	var node := MeshInstance3D.new();st.generate_tangents();node.mesh=st.commit();node.material_override=mat;add_child(node)
 
 func configure(track_world: TrackWorld) -> void:
@@ -174,7 +180,8 @@ func configure(track_world: TrackWorld) -> void:
 	wall_material=preload("res://scripts/render/materials25.gd").surface(6,Color.WHITE,true)
 	var roof := ShaderMaterial.new();roof.shader=preload("res://assets/shaders/roof24.gdshader");roof_material=roof
 	glass=StandardMaterial3D.new();glass.albedo_color=Color("344a55");glass.roughness=0.24;glass.metallic=0.35;glass.cull_mode=BaseMaterial3D.CULL_DISABLED
-	for b in data.buildings:_building(b)
+	for b in data.buildings:
+		_building(b);building_base=NAN
 	for b in batches.values():
 		_flush(b,float(b.distance))
 	var tones := [Color("9c9869"),Color("8b975d"),Color("697b48"),Color("b2a47a")]
@@ -230,9 +237,11 @@ func configure(track_world: TrackWorld) -> void:
 	for key in batches:
 		if not (key.begins_with("street") or key.begins_with("dirtroad")):continue
 		_flush(batches[key],600)
+	batches.clear() # Uploaded meshes own geometry; release construction SurfaceTools.
 	var trees: Array[Transform3D]=[]
 	for ll in data.trees:
 		var at := world.geo_to_world(float(ll[0]),float(ll[1]))
+		if world.scenery_clear(at,1.7):at.y=world.ground_height(at)+0.08
 		if world.scenery_clear(at,1.7):trees.append(Transform3D(Basis().scaled(Vector3.ONE*1.15),at));world.add_tree_collider(at,2.1)
 	for ll in data.get("tree_rows",[]):
 		var pts := _polygon(ll)
@@ -241,6 +250,7 @@ func configure(track_world: TrackWorld) -> void:
 			for j in count:
 				var v := pts[i].lerp(pts[i+1],float(j)/count);var at := Vector3(v.x,0,v.y)
 				if not world.scenery_clear(at,1.8):continue
+				at.y=world.ground_height(at)+0.08
 				trees.append(Transform3D(Basis().rotated(Vector3.UP,float(j)*1.63).scaled(Vector3.ONE*(1.0+float(j%3)*0.18)),at));world.add_tree_collider(at,2.1)
 	# Sample crowns only inside mapped woodland, leaving open fields and house plots clear.
 	var rng := RandomNumberGenerator.new();rng.seed=2104
@@ -252,6 +262,7 @@ func configure(track_world: TrackWorld) -> void:
 				var at := Vector3(x+rng.randf_range(-6,6),0,z+rng.randf_range(-6,6))
 				if not Geometry2D.is_point_in_polygon(Vector2(at.x,at.z),p):continue
 				if world._nearest(at).y>90000 or not world.scenery_clear(at,3):continue
+				at.y=world.ground_height(at)+0.08
 				trees.append(Transform3D(Basis().rotated(Vector3.UP,rng.randf()*TAU).scaled(Vector3.ONE*rng.randf_range(1.05,1.7)),at));world.add_tree_collider(at,2.5)
 	preload("res://scripts/render/forest.gd").plant_variants(self,trees,"mv_broadleaf",75,0,true,false)
 	preload("res://scripts/render/forest.gd").plant_variants(self,trees,"mv_broadleaf_far",320,67,true,true)
@@ -260,7 +271,7 @@ func _flush(batch: Dictionary, distance: float) -> void:
 	var st: SurfaceTool=batch.st
 	var arrays := st.commit_to_arrays()
 	if arrays[Mesh.ARRAY_VERTEX]==null or arrays[Mesh.ARRAY_VERTEX].is_empty():return
-	st.generate_tangents()
+	st.index();st.generate_tangents()
 	var node := MeshInstance3D.new();node.mesh=st.commit();node.material_override=batch.material
 	node.visibility_range_end=distance;node.visibility_range_end_margin=35;add_child(node)
 
@@ -297,5 +308,12 @@ func _setback_storey(p: PackedVector2Array,h: float,wall: SurfaceTool,cap: Surfa
 			var a := Vector3(inset[i].x,h,inset[i].y);var b := Vector3(inset[(i+1)%inset.size()].x,h,inset[(i+1)%inset.size()].y)
 			var n := Vector3(-(b-a).z,0,(b-a).x).normalized()
 			_quad(wall,a,a+Vector3.UP*(top-h),b,b+Vector3.UP*(top-h),n,Color("d5d9d6"))
+			if Geometry2D.is_point_in_polygon(Vector2((a.x+b.x)*0.5+n.x*0.1,(a.z+b.z)*0.5+n.z*0.1),inset):n=-n
+			var pane := _batch("window",a,glass,220)
+			var bays := maxi(1,int(a.distance_to(b)/3.3))
+			for bay in bays:
+				var at := a.lerp(b,(bay+0.5)/float(bays))+Vector3.UP*1.3+n*0.04
+				var side := (b-a).normalized()*0.58
+				_quad(pane,at-side-Vector3.UP*0.75,at-side+Vector3.UP*0.75,at+side-Vector3.UP*0.75,at+side+Vector3.UP*0.75,n,Color.WHITE)
 		for index in Geometry2D.triangulate_polygon(inset):
-			cap.set_color(Color("65706e"));cap.set_normal(Vector3.UP);cap.set_uv(inset[index]/2);cap.add_vertex(Vector3(inset[index].x,top,inset[index].y))
+			cap.set_color(Color("65706e"));cap.set_normal(Vector3.UP);cap.set_uv(inset[index]/2);cap.add_vertex(Vector3(inset[index].x,top+building_base,inset[index].y))

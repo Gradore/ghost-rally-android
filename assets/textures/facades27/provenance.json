@@ -1,0 +1,29 @@
+{
+  "license": "CC0 1.0",
+  "license_url": "https://docs.ambientcg.com/license/",
+  "retrieved": "2026-10-05",
+  "assets": [
+    {
+      "id": "Plaster002",
+      "url": "https://ambientcg.com/view?id=Plaster002",
+      "download": "https://ambientcg.com/get?file=Plaster002_1K-JPG.zip",
+      "archive_sha256": "99d88bd74b8b764eb376f5bb52b5c4a432ff13b989e72882be517c9b2fa13a03",
+      "maps": {
+        "Plaster002_1K-JPG_NormalGL.jpg": "585d97ccccdc9d63a541f95d4d9649ea19b4d79485bfd7312cca7ba879468b88",
+        "Plaster002_1K-JPG_Roughness.jpg": "fd9299d7e8ce4a05b55e5e6a9b0b775c2066a9b0aa9d5f4e4c3c08beaa7e5051",
+        "Plaster002_1K-JPG_Color.jpg": "94348c7b3031644449c5926581144d8a0b84ed15685faf0daa4e7a5807dffaca"
+      }
+    },
+    {
+      "id": "Bricks001",
+      "url": "https://ambientcg.com/view?id=Bricks001",
+      "download": "https://ambientcg.com/get?file=Bricks001_1K-JPG.zip",
+      "archive_sha256": "d4e4109f305b7d1094e1c18b2f7f6a3468c62477de915ff66975fd0155b6873c",
+      "maps": {
+        "Bricks001_1K-JPG_Color.jpg": "496f6cfc9c1a7c7750e00927ede215de279a2b28833c51e97fdb8f1f71175a0a",
+        "Bricks001_1K-JPG_NormalGL.jpg": "e6203542a4c068cfac844a1a84b07d559b3d3a31c14bd6eb617d549c4dfdc0d5",
+        "Bricks001_1K-JPG_Roughness.jpg": "caefa4bfd4b8fd88e57fd92a857b18ba45bf2cb8ed4d12dd1bfbaf1641625a8b"
+      }
+    }
+  ]
+}
