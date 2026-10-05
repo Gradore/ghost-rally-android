@@ -1,0 +1,19 @@
+shader_type spatial;
+render_mode cull_disabled;
+uniform sampler2D grass_tex:source_color,filter_linear_mipmap_anisotropic,repeat_enable;
+uniform sampler2D gravel_tex:source_color,filter_linear_mipmap_anisotropic,repeat_enable;
+uniform sampler2D grass_normal:hint_normal,filter_linear_mipmap_anisotropic,repeat_enable;
+uniform sampler2D gravel_normal:hint_normal,filter_linear_mipmap_anisotropic,repeat_enable;
+uniform sampler2D atlas:source_color,filter_linear_mipmap_anisotropic;
+uniform float half_width=3.0;
+void fragment(){
+ float lateral=abs(UV.x*4.0);
+ float irregular=sin(UV.y*3.1)*0.13+sin(UV.y*12.8)*0.06;
+ float blend=smoothstep(half_width-0.25,half_width+1.25,lateral+irregular);
+ vec3 soil=texture(gravel_tex,UV*1.65).rgb*vec3(0.83,0.79,0.71);
+ vec2 tile=mix(vec2(0.012),vec2(0.988),fract(UV*3.0));
+ vec3 grass=textureGrad(atlas,(vec2(1,1)+tile)/vec2(3,2),dFdx(UV*3.0)/vec2(3,2),dFdy(UV*3.0)/vec2(3,2)).rgb*vec3(0.84,0.90,0.79);
+ ALBEDO=mix(soil,grass,blend);ROUGHNESS=0.98;
+ NORMAL_MAP=mix(texture(gravel_normal,UV*1.65).rgb,texture(grass_normal,UV*0.5).rgb,blend);
+ NORMAL_MAP_DEPTH=0.55*(1.0-smoothstep(35.0,110.0,length(VERTEX)));
+}

@@ -1,0 +1,9 @@
+# ADR 0002: native Android target update
+
+The user's latest guidance makes Godot Mobile/Vulkan, Jolt and a future C#/native simulation core the target. The active project now selects Mobile and Godot 4.4's built-in Jolt module. Materials use PBR clearcoat, directional cascaded shadows and GPU dust; static detail remains instanced. Explicit physics presets: Android 240/360 Hz, desktop 720 Hz; Android defaults to 360. Presets remain fixed within a race and invalidate/restrict comparison when changed.
+
+The current executable core remains the independently testable GDScript prototype. A Godot-free C# or C++ core, gdUnit4 integration are pending acceptance items, not implemented features. Migration requires an Android export containing the actual managed runtime/native binaries, equivalent numerical tests and device profiling. Changing a filename or adding an unused C# sample would not constitute a migration.
+
+Terrain3D 1.0.1 is now integrated for the Brandenburg terrain through a dedicated adapter, with four 512-pixel regions and Android arm64 binaries. A real Mobile/Vulkan software-rendered start frame passes. Terrain uses photo-interpreted heights, not surveyed DEM. Terrain3D must use a version compatible with the selected Godot release, Vulkan and Android ABIs. Do not replace the current terrain with a plugin until the APK actually exports and loads it. A material/terrain adapter remains the migration boundary. No renderer effects unavailable on Mobile (SDFGI, SSR or volumetric fog) are required. Compatibility remains a manual fallback target for older phones; screenshots must state which renderer actually produced them.
+
+References checked: Godot 4.4 Jolt guide https://docs.godotengine.org/en/4.4/tutorials/physics/using_jolt_physics.html ; renderer guide https://docs.godotengine.org/en/4.4/tutorials/rendering/renderers.html ; Android export guide https://docs.godotengine.org/en/4.4/tutorials/export/exporting_for_android.html .

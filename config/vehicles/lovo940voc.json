@@ -1,0 +1,82 @@
+{
+  "id": "lovo940voc",
+  "_assumption": true,
+  "notes": "User-specified stock performance targets. Physical calibration is provisional; VOC conformity is not certified.",
+  "mass_kg": 1350,
+  "wheelbase_m": 2.77,
+  "track_m": 1.46,
+  "cg_height_m": 0.52,
+  "front_fraction": 0.53,
+  "wheel_radius_m": 0.317,
+  "wheel_mass_kg": 20,
+  "wheel_inertia_kgm2": 1.2,
+  "ratios": [
+    3.71,
+    2.16,
+    1.37,
+    1.0,
+    0.82
+  ],
+  "final_drive": 4.1,
+  "shift_up_rpm": 5600,
+  "redline_rpm": 6200,
+  "torque_curve_nm": [
+    [
+      900,
+      125
+    ],
+    [
+      2000,
+      178
+    ],
+    [
+      2750,
+      194
+    ],
+    [
+      4000,
+      195
+    ],
+    [
+      5400,
+      170.4
+    ],
+    [
+      6200,
+      135
+    ]
+  ],
+  "turbo": false,
+  "turbo_spool_s": 0.45,
+  "turbo_decay_s": 0.2,
+  "turbo_gain": 0,
+  "diff": {
+    "type": "open",
+    "preload_nm": 0,
+    "power_lock": 0,
+    "coast_lock": 0,
+    "damping": 8
+  },
+  "tyre_pressure_pa": 200000,
+  "tyre_initial_temperature_k": 293.15,
+  "spring_npm": 32000,
+  "damper_nspm": 3200,
+  "awd_front_fraction": 0,
+  "suspension": {
+    "_assumption": true,
+    "spring_npm": 32000,
+    "damper_nspm": 3200,
+    "tyre_spring_npm": 180000,
+    "tyre_damper_nspm": 450,
+    "antiroll_npm": 10000,
+    "ride_height_m": 0.55
+  },
+  "target_power_ps": 131,
+  "target_top_speed_kmh": 185,
+  "target_0_100_s": 10.5,
+  "drag_n_per_mps2": 0.527,
+  "driveline_efficiency": 0.85,
+  "steering_lock_degrees": 37.0,
+  "steering_rate_rad_s": 4.8,
+  "brake_capacity_mps2": 15.0
+}

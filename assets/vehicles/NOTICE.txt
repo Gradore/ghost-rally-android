@@ -1,0 +1,7 @@
+Lovo vehicle visual — user-supplied model created with Meshy AI (https://www.meshy.ai/), 2026-10-05.
+Modified for this game: simplified geometry and texture resolution; original grille, rear centre panel, red lenses and four original unmarked wheels replace source components.
+User authorized use in this project. The Meshy plan and rights in source imagery were not specified. Do not assume CC0 or apply the repository code license to this asset.
+Meshy free-plan output: CC BY 4.0, https://creativecommons.org/licenses/by/4.0/ . Paid-plan output ownership differs. See https://help.meshy.ai/en/articles/10137554-what-is-the-ownership-of-the-generated-models .
+Manufacturer affiliation and trademark/design clearance are not implied by the fictional name or the appearance changes. Original uploads are not redistributed.
+
+0.29 supersedes the adapted source mesh with original reference geometry; no original mesh or baked texture pixels remain in the shipped GLB. Source silhouette attribution is retained.

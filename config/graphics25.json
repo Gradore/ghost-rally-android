@@ -1,0 +1,11 @@
+{
+  "_assumption": true,
+  "notes": "Synthetic photoreal-style albedo and authored approximate vehicle forms; not surveyed local appearance. Runtime dimensions live in shader/mesh implementation.",
+  "streetview_screenshots_captured": 0,
+  "reference_grid_spacing_m": 30,
+  "reference_grid_source": "existing OSM route coordinates",
+  "reference_grid_coverage": "unverified",
+  "sky": "synthetic LDR equirectangular",
+  "shore_sand_height_range_m": [-5.9, -4.8],
+  "original_vehicle_models_included": false
+}

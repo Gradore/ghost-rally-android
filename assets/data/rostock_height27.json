@@ -1,0 +1,38 @@
+{
+  "source": "\u00a9 GeoBasis-DE/M-V",
+  "service": "https://www.geodaten-mv.de/dienste/dgm_wcs",
+  "coverage": "mv_dgm5; mv_dgm at start",
+  "source_resolution_m": [
+    5,
+    1
+  ],
+  "runtime_spacing_m": 16,
+  "vertical_reference": "DE_DHHN2016_NH EPSG:7837",
+  "baseline_nhn_m": 3.3857810497283936,
+  "low": [
+    -6832.0,
+    -2704.0
+  ],
+  "width": 473,
+  "height": 422,
+  "origin": [
+    54.093259226545136,
+    12.179113890028853
+  ],
+  "rotation": -2.447800834282007,
+  "sha256": "c930194bbd5612848b7e161d45f39ff4d7681fe5b1961c17f9474a2858b958a4",
+  "retrieved": "2026-10-05",
+  "_assumption": true,
+  "interpretation": "16m bilinear resampling; road centre profile at 5m; game reference zero at start, not survey of road surface",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "metadata_url": "https://www.geoportal-mv.de/portal/Geowebdienste/Metadatenviewer/3caf8c20-afe1-4ac6-ad3e-5bc547e3d27d",
+  "requests": [
+    "https://www.geodaten-mv.de/dienste/dgm_wcs?service=WCS&version=2.0.1&request=GetCoverage&coverageId=mv_dgm5&format=image/tiff&subset=x(312446,322666)&subset=y(5994940,6004991)",
+    "https://www.geodaten-mv.de/dienste/dgm_wcs?service=WCS&version=2.0.1&request=GetCoverage&coverageId=mv_dgm&format=image/tiff&subset=x(314728,316328)&subset=y(5996077,5998077)"
+  ],
+  "source_sha256": {
+    "rostock-correct-dgm5.tif": "84c96257287742abc6d81bb3240f27ac931810a23699c4c83fb1788d15b2e0ce",
+    "rostock-dgm1.tif": "e001f5aa65b6543e679319d0fa90515b8e07dbc951579d693e87cf3237432d9d"
+  }
+}
