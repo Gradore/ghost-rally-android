@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace GhostRally {
  public sealed class RallyUI:MonoBehaviour{
   public RectTransform root;public Font font;public Color accent=new Color(.93f,.72f,.24f);public readonly Color panel=new Color(.025f,.055f,.075f,.92f);
-  void Awake(){font=Resources.Load<Font>("Migration/Fonts/Rajdhani-Medium");if(font==null)font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");var canvas=gameObject.AddComponent<Canvas>();canvas.renderMode=RenderMode.ScreenSpaceOverlay;gameObject.AddComponent<GraphicRaycaster>();var scale=gameObject.AddComponent<CanvasScaler>();scale.uiScaleMode=CanvasScaler.ScaleMode.ScaleWithScreenSize;scale.referenceResolution=new Vector2(1280,720);scale.matchWidthOrHeight=.5f;
+  void Awake(){font=Resources.Load<Font>("Migration/Fonts/Rajdhani-Medium");if(font==null)font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");var canvas=gameObject.AddComponent<Canvas>();canvas.renderMode=RenderMode.ScreenSpaceOverlay;gameObject.AddComponent<GraphicRaycaster>();var scale=gameObject.AddComponent<CanvasScaler>();scale.uiScaleMode=CanvasScaler.ScaleMode.ScaleWithScreenSize;scale.referenceResolution=new Vector2(1280,720);scale.matchWidthOrHeight=.5f;scale.screenMatchMode=CanvasScaler.ScreenMatchMode.Expand;
    root=new GameObject("Safe area",typeof(RectTransform)).GetComponent<RectTransform>();root.SetParent(transform,false);UpdateSafeArea();if(FindFirstObjectByType<EventSystem>()==null){var events=new GameObject("EventSystem");events.AddComponent<EventSystem>();events.AddComponent<InputSystemUIInputModule>();}
   }
   void Update(){UpdateSafeArea();}
