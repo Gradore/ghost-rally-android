@@ -25,3 +25,18 @@ Run Godot 4.4.1 `--headless --script tools/unity/export_native.gd`, then `python
 ## Acceptance still required
 
 Unity editor package resolution/API compile, custom importer/shader compile, EditMode tests and Android build have **not** run in the available environment because the Unity editor is absent. The C# grammar and independent transfer checks passed; that does not certify Unity compatibility. On-device driving, thermal/FPS/memory performance and comparison with Rally One remain untested. Full UI parity/localisation/controller calibration, per-stage graphics authoring and rendering-quality acceptance remain open. The transferred Lovo body remains visibly stylised; Unity does not automatically increase model detail. No Unity screenshot, installable Unity APK, reference-equivalent physics or production readiness is claimed.
+
+## Review 2026-10-05 (without Unity editor)
+
+Fixed:
+- `GhostRally.EditModeTests` referenced a non-existent `GhostRally.Runtime` assembly, which would stop compilation and with it every batch build. `Assets/Scripts/GhostRally.Runtime.asmdef` now exists; the test asmdef uses the current NUnit/TestRunner format.
+- `Prepare` created `Assets/Generated` with System.IO only; `AssetDatabase.CreateAsset` then fails on a fresh checkout. Folders are now created via the AssetDatabase.
+- Ghost cars were opaque (alpha on an opaque Lit material) and leaked instantiated materials every race. They now share a transparent `Resources/Generated/GhostMaterial.mat` created by `Prepare`, so the transparent variant stays in the build.
+- GRMesh import used `DependsOnSourceAsset` for textures/shader, so a first import could bind null textures. It now uses `DependsOnArtifact`; the importer version is bumped to force reimport. Fallback materials are persisted.
+- `ResetTo` no longer writes velocities to a kinematic body (warning at every start).
+- CI: build also on push to the review branches, Unity Personal activation (`UNITY_EMAIL`, `UNITY_PASSWORD`, `UNITY_LICENSE`), EditMode tests, disk cleanup, Library cache and a pre-release with the APK.
+
+Open risks found in review (not changed):
+- Scenery snapshots are flattened Godot MultiMeshes: 6,700–53,600 GameObjects per stage, each with its own renderer. Expect long loads and high CPU cost on phones; these should become `Graphics.RenderMeshInstanced` batches.
+- The scenery collider filter checks the renderer name for "leaf", but renderers are always called `surfaceN`, so every object larger than 2 m (including tree crowns) gets a MeshCollider while thin trunks get none.
+- `activeInputHandler` is switched in `Prepare`; the editor must be restarted once before Play Mode uses the Input System.

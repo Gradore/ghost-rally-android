@@ -2,9 +2,15 @@ name: Unity migration validation and Android preview
 on:
   pull_request:
     paths: ['unity/**', 'tools/unity/**', '.github/workflows/unity-migration.yml']
+  push:
+    branches: ['ccr-9ddfd160-fnepno', 'codex/ghost-rally-unity-migration']
+    paths: ['unity/**', 'tools/unity/**', '.github/workflows/unity-migration.yml']
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: unity-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   source-and-data:
     runs-on: ubuntu-latest
@@ -17,22 +23,44 @@ jobs:
       - run: python tools/unity/validate_migration.py
       - run: python tools/unity/check_csharp_syntax.py
   android-preview:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name != 'pull_request'
     needs: source-and-data
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+      UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+      UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+      UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
     steps:
-      - uses: actions/checkout@v4
       - name: Require Unity activation
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         run: |
-          if [ -z "$UNITY_LICENSE" ]; then
-            echo '::error::A Unity activation/license is required. No Unity APK can be produced by this workflow without it.'
+          if [ -z "$UNITY_EMAIL" ] || [ -z "$UNITY_PASSWORD" ] || { [ -z "$UNITY_LICENSE" ] && [ -z "$UNITY_SERIAL" ]; }; then
+            echo '::error::Unity activation missing. Add repository secrets UNITY_EMAIL, UNITY_PASSWORD and UNITY_LICENSE (Personal, .ulf content) or UNITY_SERIAL (Pro). See https://game.ci/docs/github/activation'
             exit 1
           fi
+      # The Unity 6 Android editor image needs more disk than a default runner has free.
+      - uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: true
+          android: false
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/cache@v4
+        with:
+          path: unity/Library
+          key: unity-library-android-${{ hashFiles('unity/Assets/**', 'unity/Packages/**', 'unity/ProjectSettings/**') }}
+          restore-keys: unity-library-android-
+      - name: EditMode tests
+        uses: game-ci/unity-test-runner@v4
+        with:
+          projectPath: unity
+          unityVersion: 6000.0.82f1
+          testMode: editmode
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
       - uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           projectPath: unity
           unityVersion: 6000.0.82f1
@@ -43,3 +71,13 @@ jobs:
           name: GhostRally-Unity-Android-preview
           path: unity/Builds/GhostRally-Unity-preview.apk
           if-no-files-found: error
+      - name: Publish downloadable preview APK
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="unity-preview-${GITHUB_RUN_NUMBER}"
+          cp unity/Builds/GhostRally-Unity-preview.apk "GhostRally-Unity-preview-${GITHUB_RUN_NUMBER}.apk"
+          gh release create "$tag" "GhostRally-Unity-preview-${GITHUB_RUN_NUMBER}.apk" \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease \
+            --title "Ghost Rally Unity Preview #${GITHUB_RUN_NUMBER}" \
+            --notes "Automatischer Unity-6-Development-Build (Debug-signiert, Paket com.ghostrally.racer.unitypreview) aus ${GITHUB_SHA}. Kein Store-Release; auf einem Gerät noch ungetestet."
