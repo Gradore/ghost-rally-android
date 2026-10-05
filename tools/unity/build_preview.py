@@ -25,14 +25,23 @@ def find_editor():
     return next((Path(p) for p in candidates if p and Path(p).is_file()), None)
 
 
-def run(editor, label, args, quit=True):
+def run(editor, label, args, quit=True, graphics=False):
     logs = PROJECT / 'Logs'
     logs.mkdir(exist_ok=True)
     log = logs / f'{label}.log'
-    command = [str(editor), '-batchmode', '-nographics', '-projectPath', str(PROJECT), '-logFile', str(log)]
+    command = [str(editor), '-batchmode', '-projectPath', str(PROJECT), '-logFile', str(log)]
+    if not graphics:
+        command.append('-nographics')
     if quit:
         command.append('-quit')
     command.extend(args)
+    if graphics and sys.platform.startswith('linux'):
+        command.append('-force-glcore')
+        if not os.environ.get('DISPLAY'):
+            xvfb = shutil.which('xvfb-run')
+            if not xvfb:
+                raise RuntimeError('PlayMode graphics tests need DISPLAY or xvfb-run on Linux')
+            command = [xvfb, '-a', '-s', '-screen 0 1280x720x24', *command]
     print(f'{label}: running Unity; log: {log}', flush=True)
     result = subprocess.run(command, timeout=5400)
     if result.returncode:
@@ -42,12 +51,12 @@ def run(editor, label, args, quit=True):
 def tests(editor, platform):
     result = PROJECT / 'Logs' / f'{platform}-results.xml'
     result.unlink(missing_ok=True)
-    run(editor, platform, ['-runTests', '-testPlatform', platform, '-testResults', str(result)], quit=False)
+    run(editor, platform, ['-runTests', '-testPlatform', platform, '-assemblyNames', 'GhostRally.'+platform+'Tests', '-testResults', str(result)], quit=False, graphics=platform == 'PlayMode')
     if not result.is_file():
         raise RuntimeError(f'{platform}: Unity did not write test results')
     report = ET.parse(result).getroot()
-    if int(report.get('failed', '0')) or int(report.get('passed', '0')) == 0:
-        raise RuntimeError(f'{platform}: tests failed or no test passed. See {result}')
+    if int(report.get('failed', '0')) or int(report.get('skipped', '0')) or int(report.get('inconclusive', '0')) or int(report.get('passed', '0')) == 0:
+        raise RuntimeError(f'{platform}: tests failed, were skipped/inconclusive, or no test passed. See {result}')
     print(f'{platform}: {report.get("passed")} tests passed', flush=True)
 
 
