@@ -1,6 +1,8 @@
 extends Node3D
 var camera_orbit29 := preload("res://scripts/vehicle_camera29.gd").new()
 
+const DrivingInput = preload("res://scripts/input/driving_input30.gd")
+
 const Data = preload("res://scripts/game_data.gd")
 const Car = preload("res://scripts/rally_car.gd")
 const World = preload("res://scripts/track_world.gd")
@@ -124,6 +126,9 @@ func load_save() -> void:
 		if not save.setup[i] is Dictionary:save.setup[i]=defaults.setup[i].duplicate()
 		if not save.upgrades[i] is Dictionary:save.upgrades[i]=defaults.upgrades[i].duplicate()
 	save.sensitivity=clampf(float(save.sensitivity),0.35,1.65)
+	for key in ["thumb_travel", "steering_deadzone", "gamepad_deadzone", "steering_response"]:
+		var limits: Vector2={"thumb_travel":Vector2(0.04,0.16),"steering_deadzone":Vector2(0,0.2),"gamepad_deadzone":Vector2(0.02,0.35),"steering_response":Vector2(0.6,1.6)}[key]
+		save[key]=clampf(float(save.get(key,defaults[key])),limits.x,limits.y)
 
 func write_save() -> void:
 	var f := FileAccess.open("user://save.json",FileAccess.WRITE)
@@ -563,7 +568,7 @@ func settings_adjust(key: String, amount: float, low: float, high: float) -> voi
 func setting_row(card: Control, title: String, key: String, yy: float, amount: float, low: float, high: float) -> void:
 	_label(card,title,20,Color("b8cfcb"),Vector2(32,yy+8),Vector2(335,32))
 	_button(card,"−",Vector2(383,yy),Vector2(55,45),func(): settings_adjust(key,-amount,low,high))
-	_label(card,"%.1f" % float(save.get(key,low)),20,Color("f4c64f"),Vector2(458,yy+8),Vector2(70,30))
+	_label(card,("%.2f" if key in ["thumb_travel","steering_deadzone","gamepad_deadzone"] else "%.1f") % float(save.get(key,low)),20,Color("f4c64f"),Vector2(458,yy+8),Vector2(70,30))
 	_button(card,"+",Vector2(527,yy),Vector2(55,45),func(): settings_adjust(key,amount,low,high))
 
 func calibrate_tilt() -> void:
@@ -580,12 +585,12 @@ func show_settings() -> void:
 	var veil := ColorRect.new();veil.color=Color(0.015,0.025,0.035,0.78);veil.set_anchors_preset(Control.PRESET_FULL_RECT);ui.add_child(veil)
 	var card := _card(ui,Vector2(327,45),Vector2(626,630))
 	_label(card,"EINSTELLUNGEN",36,Color.WHITE,Vector2(32,22),Vector2(560,50),true)
-	for i in 4:
-		_button(card,["FAHREN","GRAFIK","KAMERA","FAHRHILFEN"][i],Vector2(32+i*140,88),Vector2(130,45),func(tab=i):settings_tab=tab;show_settings(),settings_tab==i)
+	for i in 5:
+		_button(card,["FAHREN","GRAFIK","KAMERA","HILFEN","EINGABE"][i],Vector2(32+i*112,88),Vector2(105,45),func(tab=i):settings_tab=tab;show_settings(),settings_tab==i)
 	if settings_tab==0:
 		for i in 3:
 			var mode: String=["wheel","tilt","buttons"][i]
-			_button(card,["DAUMEN ↔","NEIGEN","TASTEN"][i],Vector2(32+i*185,165),Vector2(175,45),func():save.control_mode=mode;tilt_zero=Input.get_gravity().x;write_save();show_settings(),save.get("control_mode","wheel")==mode)
+			_button(card,["DAUMEN ↔","NEIGEN","TASTEN"][i],Vector2(32+i*185,165),Vector2(175,45),func():save.control_mode=mode;write_save();show_settings(),save.get("control_mode","wheel")==mode)
 		setting_row(card,"LENKEMPFINDLICHKEIT","sensitivity",234,0.1,0.5,1.5)
 		_label(card,"GAS AUTOMATISCH",20,Color("b8cfcb"),Vector2(32,382),Vector2(360,32))
 		_button(card,"AN" if save.casual else "AUS",Vector2(440,374),Vector2(142,45),func():save.casual=not save.casual;write_save();show_settings(),save.casual)
@@ -606,12 +611,18 @@ func show_settings() -> void:
 		setting_row(card,"VERFOLGUNG: HÖHE (M)","camera_height",242,0.2,1.5,5.0)
 		setting_row(card,"SICHTFELD (GRAD)","camera_fov",314,5.0,50.0,85.0)
 		_label(card,"Im Rennen zwischen Cockpit und Verfolgung wechseln.\nEinstellungen werden gespeichert.",20,Color("aac7c3"),Vector2(32,416),Vector2(550,85))
-	else:
+	elif settings_tab==3:
 		for i in 3:
 			var key: String=["abs_assist","traction_assist","steering_assist"][i]
 			_label(card,["ABS / BLOCKIERSCHUTZ","TRAKTIONSKONTROLLE","LENKHILFE BEI HOHEM TEMPO"][i],19,Color.WHITE,Vector2(32,178+i*82),Vector2(390,32))
 			_button(card,"AN" if save.get(key,true) else "AUS",Vector2(440,170+i*82),Vector2(142,45),func(k=key):save[k]=not save.get(k,true);write_save();show_settings(),save.get(key,true))
 		_label(card,"Hilfen erleichtern die Kontrolle. Für freies Driften\nTraktionskontrolle und Lenkhilfe ausschalten.\nDie Handbremse löst weiterhin die Hinterräder.",19,Color("aac7c3"),Vector2(32,430),Vector2(560,90))
+	else:
+		setting_row(card,"DAUMENWEG (ANTEIL BREITE)","thumb_travel",165,0.01,0.04,0.16)
+		setting_row(card,"LENK-TOTZONE", "steering_deadzone",225,0.02,0.0,0.2)
+		setting_row(card,"GAMEPAD-TOTZONE", "gamepad_deadzone",285,0.02,0.02,0.35)
+		setting_row(card,"LENKREAKTION", "steering_response",345,0.1,0.6,1.6)
+		_label(card,"Daumenweg: 0,08 = 8 % der Bildschirmbreite.\nGamepad: linker Stick lenkt, RT gibt Gas, LT bremst.\nA: Handbremse · Start: Pause · Y: Kamera.\nGamepad ist automatisch aktiv; Gas bleibt analog.",19,Color("aac7c3"),Vector2(32,409),Vector2(560,110))
 	_button(card,"KARTENDATEN UND LIZENZEN",Vector2(32,541),Vector2(270,45),func():show_credits())
 	_button(card,"FERTIG",Vector2(322,541),Vector2(260,45),func():close_settings(),true)
 
@@ -816,6 +827,11 @@ func _notification(what: int) -> void:
 
 func _input(event: InputEvent) -> void:
 	if state!="race": return
+	if event is InputEventJoypadButton and event.pressed:
+		if event.button_index==JOY_BUTTON_START:
+			show_pause();return
+		if event.button_index==JOY_BUTTON_Y:
+			toggle_camera();return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode==KEY_C:
 			toggle_camera()
@@ -839,6 +855,7 @@ func get_controls() -> void:
 	handbrake=Input.is_key_pressed(KEY_SPACE)
 	var width := get_viewport().get_visible_rect().size.x
 	var height := get_viewport().get_visible_rect().size.y
+	var analog_pedal_active := false
 	for index in touch:
 		var pos: Vector2=touch[index]
 		var anchor: Vector2=touch_anchor.get(index,pos)
@@ -849,9 +866,10 @@ func get_controls() -> void:
 		if anchor.x<width*0.27:
 			if save.get("control_mode","wheel")=="buttons":steer += -1 if pos.x<width*0.142 else 1
 			else:
-				steer+=clampf((pos.x-anchor.x)/(width*0.085),-1,1)
+				steer+=DrivingInput.axis((pos.x-anchor.x)/(width*float(save.get("thumb_travel",0.085))),float(save.get("steering_deadzone",0.0)))
 		elif anchor.x>width*0.73:
 			if save.get("pedal_mode","buttons")=="joystick":
+				analog_pedal_active=true
 				var amount := clampf((anchor.y-pos.y)/(height*0.09),-1,1)
 				amount=signf(amount)*maxf(0.0,(absf(amount)-0.06)/0.94)
 				throttle=maxf(throttle,maxf(0.0,amount));brake=maxf(brake,maxf(0.0,-amount))
@@ -862,8 +880,16 @@ func get_controls() -> void:
 		var tilt := Input.get_gravity().x
 		if Input.get_gravity().length_squared()<1.0: tilt=Input.get_accelerometer().x
 		steer=tilt_steering(tilt)
+	# One mapped controller owns analog input; neutral triggers must not cause auto-gas.
+	var devices := Input.get_connected_joypads()
+	if not devices.is_empty():
+		var pad := DrivingInput.gamepad(devices[0],float(save.get("gamepad_deadzone",0.12)))
+		if absf(pad.steer)>0:steer=pad.steer
+		throttle=maxf(throttle,pad.throttle);brake=maxf(brake,pad.brake)
+		handbrake=handbrake or pad.handbrake
+		analog_pedal_active=true
 	steer=clampf(steer*float(save.sensitivity),-1,1)
-	if save.casual and brake<0.05 and not handbrake: throttle=1
+	if save.casual and not analog_pedal_active and brake<0.05 and not handbrake: throttle=1
 
 func update_reverse(longitudinal: float) -> void:
 	var down := brake>0.1
@@ -889,7 +915,7 @@ func _physics_process(delta: float) -> void:
 			race_time+=delta
 			countdown_label.visible = race_time < 0.45
 			get_controls()
-			steer=mobile_steering.step(steer,speed,delta)
+			steer=mobile_steering.step(steer,speed,delta,float(save.get("steering_response",1.0)))
 			update_vehicle(delta)
 			record_ghost(delta)
 			update_replay()

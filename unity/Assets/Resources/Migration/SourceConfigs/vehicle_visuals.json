@@ -1,0 +1,18 @@
+{
+  "_assumption": true,
+  "notes": "Original clean reference reconstruction from the supplied Meshy silhouette. Rounded 195/65R15 tyres, tread geometry, recessed five-spoke rims and reflective clean PBR surfaces. No source reflection atlas/brand logos are shipped in this model. Visual only; native physics and collision remain separate.",
+  "lovo940voc": {
+    "scene_path": "res://assets/vehicles/lovo940voc.glb",
+    "target_length_m": 4.87,
+    "rotation_y_degrees": 0,
+    "wheel_nodes": {
+      "front_left": "wheel_fl",
+      "front_right": "wheel_fr",
+      "rear_left": "wheel_rl",
+      "rear_right": "wheel_rr"
+    },
+    "max_triangles": 100000,
+    "center_wheels_on_native_pivots": true,
+    "brake_material_name": "Lovo brake lens"
+  }
+}

@@ -1,3 +1,7 @@
+# Active target as of 2026-10-05
+
+The user explicitly requested rebuilding Ghost Rally in Unity. The active project is `unity/`; follow `unity/AGENTS.md` for its build/validation workflow. Preserve the legacy Godot baseline until Unity editor, rendering, physics and Android acceptance pass. The native Godot preservation rule below applies to legacy work, not the explicitly authorised Unity migration. Existing asset/provenance and review-branch rules remain in force.
+
 # Ghost Rally engineering rules
 
 - Preserve the native Android game and the original mapped stages. Refer to `PLANS.md` for milestones.

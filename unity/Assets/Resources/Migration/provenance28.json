@@ -1,0 +1,18 @@
+{
+  "source_sha256": "13f680ca8ea03f676da0dc3a2c4ca76ae36b496f0ae357a44b3c9bf9a71c326a",
+  "source_obj_archive_sha256": "e9195e498039769031c1c37cbe4e4a97122782e4cecb2826732f9f2bec58b3de",
+  "optimized_sha256": "ded5d80d7254acdc79b19973d4499c48872b74283a10469e5f5d83070bac82c8",
+  "source_triangles": 951340,
+  "optimized_triangles": 30570,
+  "bytes": 9967984,
+  "source": "User-supplied Meshy AI model, 2026-10-05",
+  "license_basis": "User-authorized project use. Meshy generation plan/input-image rights not supplied. Free-plan CC BY 4.0 or paid-plan ownership; do not assume CC0. See NOTICE.txt.",
+  "changes": [
+    "5% body decimation followed by removal of fused source wheels",
+    "Original horizontal grille and untextured source grille/rear centre surfaces, red lenses and unmarked six-spoke wheels",
+    "Four native axle/steering pivots; metre-fit to assumed 4.87m; physics/collider preserved",
+    "Embedded PBR maps capped at 2048px; no logo textures mapped onto replacement grille/hubs/rear panel",
+    "Raised centre trunk emblem relief flattened to neighbouring body surface"
+  ],
+  "legal_status": "Visible manufacturer identifiers replaced. No legal clearance of fictional name, overall silhouette or source input rights is established."
+}
