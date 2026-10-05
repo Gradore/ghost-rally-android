@@ -41,7 +41,7 @@ namespace GhostRally {
   void SetFriction(WheelCollider w,float grip,bool gravel){var f=w.forwardFriction;f.extremumSlip=gravel?.2f:.12f;f.extremumValue=1;f.asymptoteSlip=.8f;f.asymptoteValue=.6f;f.stiffness=grip;w.forwardFriction=f;f=w.sidewaysFriction;f.extremumSlip=gravel?.16f:.09f;f.extremumValue=1;f.asymptoteSlip=.5f;f.asymptoteValue=.65f;f.stiffness=grip;w.sidewaysFriction=f;}
   void AntiRoll(int left,int right){WheelHit a,b;bool ga=wheels[left].GetGroundHit(out a),gb=wheels[right].GetGroundHit(out b);if(!ga&&!gb)return;float ta=ga?(-wheels[left].transform.InverseTransformPoint(a.point).y-wheels[left].radius)/wheels[left].suspensionDistance:1;float tb=gb?(-wheels[right].transform.InverseTransformPoint(b.point).y-wheels[right].radius)/wheels[right].suspensionDistance:1;float force=(ta-tb)*10000;if(ga)Body.AddForceAtPosition(-transform.up*force,wheels[left].transform.position);if(gb)Body.AddForceAtPosition(transform.up*force,wheels[right].transform.position);}
   void LateUpdate(){if(Body==null)return;for(int i=0;i<4;i++)if(wheelVisuals[i]!=null){wheels[i].GetWorldPose(out Vector3 p,out Quaternion q);wheelVisuals[i].position=p;wheelVisuals[i].rotation=q*baseWheelRotation[i];}}
-  public void ResetTo(Vector3 p,Quaternion q){Body.linearVelocity=Vector3.zero;Body.angularVelocity=Vector3.zero;Body.position=p;Body.rotation=q;steer=throttle=brake=0;handbrake=false;reverse=brakeWasDown=false;Gear=1;steeringAngle=0;}
+  public void ResetTo(Vector3 p,Quaternion q){if(!Body.isKinematic){Body.linearVelocity=Vector3.zero;Body.angularVelocity=Vector3.zero;}Body.position=p;Body.rotation=q;steer=throttle=brake=0;handbrake=false;reverse=brakeWasDown=false;Gear=1;steeringAngle=0;}
  }
  public sealed class RallySurface:MonoBehaviour{public bool gravel;}
 }
