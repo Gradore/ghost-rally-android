@@ -36,7 +36,7 @@ namespace GhostRally.Editor {
       var p=ps[pi];reader.BaseStream.Position=start+p.offset;var v=new Vector3[p.vertices];var n=new Vector3[p.vertices];var uv=new Vector2[p.vertices];var colors=new Color[p.vertices];
       for(int k=0;k<p.vertices;k++){v[k]=new Vector3(reader.ReadSingle(),reader.ReadSingle(),reader.ReadSingle());n[k]=new Vector3(reader.ReadSingle(),reader.ReadSingle(),reader.ReadSingle());uv[k]=new Vector2(reader.ReadSingle(),reader.ReadSingle());colors[k]=p.stride==48?new Color(reader.ReadSingle(),reader.ReadSingle(),reader.ReadSingle(),reader.ReadSingle()):Color.white;}
       var ids=new int[p.indices];for(int k=0;k<ids.Length;k++)ids[k]=reader.ReadInt32();
-      var mesh=new Mesh{name="mesh"+mi+"_"+pi,indexFormat=IndexFormat.UInt32};mesh.vertices=v;mesh.normals=n;mesh.uv=uv;mesh.colors=colors;mesh.triangles=ids;mesh.RecalculateBounds();mesh.RecalculateTangents();
+      var mesh=new Mesh{name="mesh"+mi+"_"+pi,indexFormat=p.vertices>65535?IndexFormat.UInt32:IndexFormat.UInt16};mesh.vertices=v;mesh.normals=n;mesh.uv=uv;mesh.colors=colors;mesh.triangles=ids;mesh.RecalculateBounds();mesh.RecalculateTangents();
       ctx.AddObjectToAsset(mesh.name,mesh);meshes[mi][pi]=mesh;meshMaterials[mi][pi]=p.material>=0?materials[p.material]:new Material(Shader.Find("Universal Render Pipeline/Lit"));
      }
     }

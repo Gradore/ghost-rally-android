@@ -49,6 +49,10 @@ func visit(node: Node,world: Node) -> void:
  for child in node.get_children():visit(child,world)
 func run() -> void:
  for index in range(17):
+  var chosen := -1
+  for arg in OS.get_cmdline_user_args():
+   if arg.begins_with("--stage="):chosen=int(arg.trim_prefix("--stage="))
+  if chosen>=0 and chosen!=index:continue
   if OS.get_cmdline_user_args().has("--remaining") and index in [3,16]:continue
   meshes=[];materials=[];nodes=[];mesh_cache={};mat_cache={};binary=PackedByteArray()
   var world := TrackWorld.new();root.add_child(world);world.build(GameData.TRACKS[index]);visit(world,world)
