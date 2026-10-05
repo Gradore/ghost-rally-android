@@ -131,3 +131,6 @@ Map data © OpenStreetMap contributors, ODbL, https://www.openstreetmap.org/copy
 
 ### 0.27: more facade detail and official Rostock heights
 Free ambientCG PBR brick/plaster; batched window trims, sills, entrances and downpipes. Rostock uses official GeoBasis-DE/M-V DGM1/DGM5 elevations including the initial climb, with matching road contact, scenery/colliders and fixed-tick slope gravity. See docs/GRAPHICS-TERRAIN-0.27.md and docs/VALIDATION-0.27.md.
+
+### 0.28: user Meshy car in garage and race
+Lovo now uses the supplied GLB body, reduced from 951,340 to 30,570 triangles, with four original animated wheels, replacement grille, debranded rear surface and live brake lamps. Physics and colliders are retained. See docs/MODEL-0.28.md for asset, legal and visual limitations. Preview package com.ghostrally.racer.preview27 updates 0.27 with the same debug signer.

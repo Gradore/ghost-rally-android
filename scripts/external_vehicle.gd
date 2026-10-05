@@ -67,8 +67,22 @@ static func attach(vehicle: Node3D, config: Dictionary, override_profile: Dictio
 	if mapped.size()==4:
 		for i in 4:
 			var spin: Node3D=vehicle.wheel_spins[i];var pivot: Node3D=spin.get_parent()
-			for child in spin.get_children():if child is Node3D:child.hide()
+			for child in spin.get_children():
+				if child is Node3D:child.free()
 			pivot.show();mapped[i].reparent(spin,true)
+			if profile.get("center_wheels_on_native_pivots",false):mapped[i].position=Vector3.ZERO
+	var brake_name: String=profile.get("brake_material_name","")
+	if not brake_name.is_empty():
+		bind_brake_material(imported,vehicle,brake_name)
 	stats["articulated_wheels"]=mapped.size()==4
 	stats["length_m"]=scaled_size.z;stats["width_m"]=scaled_size.x;stats["height_m"]=scaled_size.y
 	return stats
+
+static func bind_brake_material(node: Node, vehicle: Node3D, title: String) -> void:
+	if node is MeshInstance3D and node.mesh!=null:
+		for i in node.mesh.get_surface_count():
+			var source: Material=node.get_active_material(i)
+			if source is StandardMaterial3D and source.resource_name==title:
+				# Per-car native material avoids shared resource changes across garage/race.
+				node.set_surface_override_material(i,vehicle.rear_lamps)
+	for child in node.get_children():bind_brake_material(child,vehicle,title)

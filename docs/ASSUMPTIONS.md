@@ -68,3 +68,6 @@ Clipped complex pitched roofs retain original polygons and authored ridge/eave h
 Facade trims, entrance location/size and window detail are interpreted (_assumption: true). Official Rostock DGM source heights are measured-data derivatives; runtime 16m resampling, road-centre profile, level building foundations and gradient projection are adaptations. See GRAPHICS-TERRAIN-0.27.md. No surveyed facade or full photorealism claim.
 
 0.27 rendering adaptation: road and tyre surface 0.16m above the resampled DGM to keep the coarse terrain under the asphalt; DGM-derived crossfall applied to road edges/contact.
+
+## 0.28 Meshy visual
+The user model is visual only. Its dimensions are fitted to an assumed 4.87m total length; AI geometry is not an accurate measured 940 body. Native 2.77m axle positions, 0.317m tyre radius and 1.75m collision width remain unchanged. Source panel proportions and baked reflections are imperfect. Custom wheels are centered on native simulation pivots and replace fused source wheels. Grille/rear panel/wheels are original fictional replacements; the name Lovo and overall silhouette have not received trademark/design clearance. Meshy generation plan and input-image licensing remain unspecified.

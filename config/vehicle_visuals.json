@@ -1,11 +1,18 @@
 {
   "_assumption": true,
-  "notes": "Optional visual-only GLB slot. No user model has been supplied yet. Imported appearance never defines vehicle physics or collision.",
+  "notes": "User-supplied Meshy sedan, reduced and modified for the fictional Lovo. Original horizontal grille, unmarked wheels and rear panel. Appearance only; native physics and colliders are retained. No legal clearance of model/name is implied.",
   "lovo940voc": {
     "scene_path": "res://assets/vehicles/lovo940voc.glb",
     "target_length_m": 4.87,
     "rotation_y_degrees": 0,
-    "wheel_nodes": {"front_left": "wheel_fl", "front_right": "wheel_fr", "rear_left": "wheel_rl", "rear_right": "wheel_rr"},
-    "max_triangles": 100000
+    "wheel_nodes": {
+      "front_left": "wheel_fl",
+      "front_right": "wheel_fr",
+      "rear_left": "wheel_rl",
+      "rear_right": "wheel_rr"
+    },
+    "max_triangles": 100000,
+    "center_wheels_on_native_pivots": true,
+    "brake_material_name": "Rear red lens"
   }
 }

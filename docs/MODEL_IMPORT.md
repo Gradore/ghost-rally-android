@@ -11,3 +11,6 @@ Zusätzlich hilfreich: Länge/Breite/Höhe, Radstand, Fotos von vorn/hinten/beid
 Technik: Datei unter `assets/vehicles/lovo940voc.glb` importieren, Profil in `config/vehicle_visuals.json` prüfen. Der Adapter kontrolliert Proportionen und Polygonbudget; ein fehlendes oder abgelehntes Modell lässt die vorhandene Darstellung aktiv. Es gibt noch keinen Datei-Auswahldialog im Android-Spiel. Derzeit ist der Import durch Einbau ins Projekt vorgesehen.
 
 Für Streckenverbesserungen: GPX/KML der gewünschten Route, Straßenfotos mit Standort und Blickrichtung, zusammenhängendes Streckenvideo, Gebäude-/Straßenbreiten und ein Höhenprofil liefern. Aktuelle eigene Aufnahmen helfen insbesondere dort, wo die vorhandenen Panoramen alt oder lückenhaft sind.
+
+## Eingebaut in 0.28
+Die Nutzerdatei vom 5. Oktober 2026 wird jetzt in Garage und Rennen geladen. Aus dem einzelnen Mesh wurden die source Räder entfernt und vier eigene Räder mit Drehpunkten erstellt. Der Grill und der hintere Bereich mit Emblem/Kennzeichen wurden ersetzt. Das rohe Original wird nicht mitgeliefert. Physik und Kollisionskörper bleiben separat; Logoentfernung und „Lovo“ sind keine rechtliche Marken-/Designfreigabe. Siehe assets/vehicles/provenance28.json und CREDITS.md.

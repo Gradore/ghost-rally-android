@@ -630,7 +630,8 @@ func show_credits() -> void:
 	_label(card,"www.openstreetmap.org/copyright",16,Color("87bfb5"),Vector2(32,371),Vector2(730,28))
 	_label(card,"HÖHEN ROSTOCK: © GeoBasis-DE/M-V · DGM1/DGM5, aufbereitet",17,Color("b4cbc3"),Vector2(32,415),Vector2(730,28))
 	_label(card,"Putz/Klinker: ambientCG · CC0 · Strecken sind Spieladaptionen",17,Color("b4cbc3"),Vector2(32,451),Vector2(730,28))
-	_button(card,"ZURÜCK",Vector2(32,500),Vector2(732,51),func(): show_settings(),true)
+	_label(card,"Lovo-Modell: Meshy AI · Nutzerdatei, für das Spiel verändert",16,Color("b4cbc3"),Vector2(32,478),Vector2(730,23))
+	_button(card,"ZURÜCK",Vector2(32,511),Vector2(732,51),func(): show_settings(),true)
 
 func start_race() -> void:
 	state="race"

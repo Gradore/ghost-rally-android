@@ -1,7 +1,7 @@
 extends Node3D
 # Original small showroom: no track geometry or race colliders are loaded here.
 var turntable := false
-var view_angle := -0.45
+var view_angle := PI-0.45
 var reflection: ReflectionProbe
 var preview: RallyCar
 var selected_id := ""
