@@ -9,8 +9,8 @@ static func build(parent: Node3D) -> Node3D:
 	var assets: Resource=ClassDB.instantiate("Terrain3DAssets")
 	var grass: Resource=ClassDB.instantiate("Terrain3DTextureAsset")
 	grass.set("id",0);grass.set("name","Lausitz grass")
-	grass.set("albedo_texture",atlas_tile(4))
-	grass.set("normal_texture",texture("res://assets/nature/forrest_ground_01_nor_gl.jpg"))
+	grass.set("albedo_texture",texture("res://assets/textures/terrain29/ground037_alb_ht.png"))
+	grass.set("normal_texture",texture("res://assets/textures/terrain29/ground037_nrm_rgh.png"))
 	grass.set("albedo_color",Color(0.84,0.88,0.79));grass.set("roughness",0.8);grass.set("uv_scale",0.8)
 	assets.call("set_texture",0,grass)
 	var soil: Resource=ClassDB.instantiate("Terrain3DTextureAsset")
@@ -30,6 +30,7 @@ static func build(parent: Node3D) -> Node3D:
 
 static func texture(path: String) -> ImageTexture:
 	var image: Image=load(path).get_image()
+	image.convert(Image.FORMAT_RGBA8)
 	image.resize(1024,1024,Image.INTERPOLATE_LANCZOS)
 	image.generate_mipmaps()
 	return ImageTexture.create_from_image(image)
@@ -38,11 +39,12 @@ static func atlas_tile(index: int) -> ImageTexture:
 	var atlas: Image=load("res://assets/textures/material_atlas25.png").get_image()
 	var w := atlas.get_width()/3;var h := atlas.get_height()/2
 	var image := atlas.get_region(Rect2i((index%3)*w,(index/3)*h,w,h))
+	image.convert(Image.FORMAT_RGBA8)
 	image.resize(1024,1024,Image.INTERPOLATE_LANCZOS);image.generate_mipmaps()
 	return ImageTexture.create_from_image(image)
 
 static func shore_control(height: Image) -> Image:
-	# Terrain3D 1.0.1 control: base bits 27..31, overlay 22..26, blend 14..21.
+	# Terrain3D 1.0.2 control: base bits 27..31, overlay 22..26, blend 14..21.
 	# Sand between -5.9 and -5.0 m is an artistic shore band, not surveyed substrate.
 	var source := height.get_data();var encoded := PackedByteArray();encoded.resize(source.size())
 	for pixel in height.get_width()*height.get_height():

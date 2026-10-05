@@ -71,3 +71,8 @@ Facade trims, entrance location/size and window detail are interpreted (_assumpt
 
 ## 0.28 Meshy visual
 The user model is visual only. Its dimensions are fitted to an assumed 4.87m total length; AI geometry is not an accurate measured 940 body. Native 2.77m axle positions, 0.317m tyre radius and 1.75m collision width remain unchanged. Source panel proportions and baked reflections are imperfect. Custom wheels are centered on native simulation pivots and replace fused source wheels. Grille/rear panel/wheels are original fictional replacements; the name Lovo and overall silhouette have not received trademark/design clearance. Meshy generation plan and input-image licensing remain unspecified.
+
+## 0.29
+The reference reconstruction is an artistic boxy sedan, not a measured 940 model. Assumed length 4.87m, tyre diameter 0.634m, width 0.195m, rim diameter 0.381m; native axle positions, simulation and collider retained. Panel shapes and optical detail are authored. Camera speed thresholds, damping, 20-degree pitch clamp and 1-second recenter delay are interaction settings, not physical parameters. Terrain3D 1.0.2 and CC0 Ground037 change lake-terrain rendering, not mapped coordinates or DGM heights. No phone frame-rate measurement is claimed.
+
+0.29 garage preview height is lowered 0.077m to match the service-bay floor; this is a display offset only.

@@ -1,4 +1,5 @@
 extends Node3D
+var camera_orbit29 := preload("res://scripts/vehicle_camera29.gd").new()
 
 const Data = preload("res://scripts/game_data.gd")
 const Car = preload("res://scripts/rally_car.gd")
@@ -365,9 +366,9 @@ func display_showroom() -> void:
 	showroom.show()
 	sun.light_energy=0.18
 	showroom.select_car(Data.CARS[active_car],int(save.livery[active_car]))
-	camera.position=Vector3(5.6,2.35,5.6)
+	camera.position=Vector3(5.6,2.15,5.6)
 	camera.look_at(Vector3(1.25,0.85,0),Vector3.UP)
-	camera.fov=48
+	camera.fov=43
 	apply_graphics()
 
 func apply_graphics() -> void:
@@ -630,10 +631,11 @@ func show_credits() -> void:
 	_label(card,"www.openstreetmap.org/copyright",16,Color("87bfb5"),Vector2(32,371),Vector2(730,28))
 	_label(card,"HÖHEN ROSTOCK: © GeoBasis-DE/M-V · DGM1/DGM5, aufbereitet",17,Color("b4cbc3"),Vector2(32,415),Vector2(730,28))
 	_label(card,"Putz/Klinker: ambientCG · CC0 · Strecken sind Spieladaptionen",17,Color("b4cbc3"),Vector2(32,451),Vector2(730,28))
-	_label(card,"Lovo-Modell: Meshy AI · Nutzerdatei, für das Spiel verändert",16,Color("b4cbc3"),Vector2(32,478),Vector2(730,23))
+	_label(card,"Lovo: eigener Aufbau nach Meshy-Nutzervorlage · siehe Lizenzen",16,Color("b4cbc3"),Vector2(32,478),Vector2(730,23))
 	_button(card,"ZURÜCK",Vector2(32,511),Vector2(732,51),func(): show_settings(),true)
 
 func start_race() -> void:
+	camera_orbit29.reset()
 	state="race"
 	touch.clear()
 	touch_anchor.clear()
@@ -907,6 +909,9 @@ func _physics_process(delta: float) -> void:
 	if is_instance_valid(car) and not (is_instance_valid(showroom) and showroom.visible):
 		var in_menu := state in ["home","garage","settings","tracks","prerace"]
 		var back := Vector3(sin(car.rotation.y),0,cos(car.rotation.y))
+		if state=="race":
+			var signed_speed := velocity.dot(Vector2(-sin(car.rotation.y),-cos(car.rotation.y)))
+			camera_orbit29.update(delta,preload("res://scripts/vehicle_camera29.gd").read_look_input(),signed_speed)
 		if is_instance_valid(car.body): car.body.visible=not (state=="race" and camera_mode==1)
 		if state=="race" and camera_mode==1:
 			var bob := sin(race_time*18.0)*minf(0.035,speed*0.0005)
@@ -915,8 +920,10 @@ func _physics_process(delta: float) -> void:
 			camera.look_at(camera.position-back*22.0+Vector3(0,-0.16,0),Vector3.UP)
 			camera.fov=lerpf(camera.fov,74.0+clampf(speed*0.07,0.0,6.0),clampf(delta*8.0,0,1))
 		else:
-			var look_ahead := (2.0 if state=="garage" else 0.0) if in_menu else 12.0+speed*0.36
+			if not in_menu:back=back.rotated(Vector3.UP,camera_orbit29.angles().x)
+			var look_ahead := (2.0 if state=="garage" else 0.0) if in_menu else (12.0+speed*0.36)*(1.0-clampf(absf(camera_orbit29.yaw)/0.5,0,1))
 			var desired := car.position+back*(8.0 if state=="prerace" else (12.0 if in_menu else float(save.get("camera_distance",7.0))+speed*0.030))+Vector3(0,4.8 if state=="prerace" else (11 if in_menu else float(save.get("camera_height",2.5))+speed*0.010),0)
+			if not in_menu:desired.y+=sin(camera_orbit29.pitch)*float(save.get("camera_distance",7.0))
 			# Keep the chase camera above hills and roadside objects.
 			desired.y=maxf(desired.y,world.ground_height(desired)+1.0)
 			if not in_menu:

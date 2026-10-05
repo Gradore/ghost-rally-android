@@ -1,0 +1,1 @@
+Camera orbit/reverse behavior adapted from M.A.V.S. Cam_Holder.gd, Millu30, MIT. User supplied archive at commit 46179c69f4c9f0af259a7634ed83cca3791d6669. Changed: engine-independent helper, native -Z-forward vehicle, exponential delta-time smoothing, hysteresis, no VehicleBody3D replacement, no demo assets imported.

@@ -36,7 +36,8 @@ func _ready() -> void:
 		var light := OmniLight3D.new();light.position=Vector3(x,4.0,-0.5);light.light_energy=0.75;light.omni_range=12;light.shadow_enabled=false;add_child(light)
 	var key := SpotLight3D.new();key.position=Vector3(1.5,4.8,3.0);key.look_at_from_position(key.position,Vector3.ZERO,Vector3.UP)
 	key.light_color=Color("fff1de");key.light_energy=3.4;key.spot_range=12;key.spot_angle=50;key.shadow_enabled=true;key.light_cull_mask=1;add_child(key)
-	var fill := OmniLight3D.new();fill.position=Vector3(-3,2.7,-2.0);fill.light_color=Color("b6d7ed");fill.light_energy=1.8;fill.omni_range=8;fill.light_cull_mask=1;add_child(fill)
+	var fill := OmniLight3D.new();fill.position=Vector3(-3,2.7,-2.0);fill.light_color=Color("b6d7ed");fill.light_energy=2.2;fill.omni_range=8;fill.light_cull_mask=1;add_child(fill)
+	var front_fill := OmniLight3D.new();front_fill.position=Vector3(4,2.8,4);front_fill.light_color=Color("dfedff");front_fill.light_energy=2.4;front_fill.omni_range=10;front_fill.light_cull_mask=1;add_child(front_fill)
 	reflection=ReflectionProbe.new();reflection.position=Vector3(0,2.1,0);reflection.size=Vector3(14,6,14)
 	reflection.interior=true;reflection.box_projection=true;reflection.cull_mask=2;reflection.reflection_mask=1;reflection.intensity=0.85;reflection.update_mode=ReflectionProbe.UPDATE_ONCE;add_child(reflection)
 	# Soft contact shadow remains inexpensive when dynamic shadows are disabled.
@@ -58,7 +59,7 @@ func select_car(config: Dictionary, livery: int) -> void:
 	for node in preview.body.get_children():
 		if node is MeshInstance3D and node.material_override is ShaderMaterial and node.material_override.shader.resource_path.ends_with("rally_paint.gdshader"):
 			node.material_override.set_shader_parameter("dirt_amount",0.0)
-	preview.position=Vector3.ZERO;preview.rotation.y=view_angle
+	preview.position=Vector3(0,-0.077,0);preview.rotation.y=view_angle
 
 func rotate_view(amount: float) -> void:
 	view_angle=wrapf(view_angle+amount,-PI,PI)

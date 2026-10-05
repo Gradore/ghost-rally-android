@@ -1,4 +1,4 @@
-# Copyright © 2025 Cory Petkovsek, Roope Palmroos, and Contributors.
+# Copyright © 2023-2026 Cory Petkovsek, Roope Palmroos, and Contributors.
 # Importer for Terrain3D
 @tool
 extends Terrain3D
@@ -105,4 +105,4 @@ enum { TYPE_HEIGHT, TYPE_CONTROL, TYPE_COLOR }
 func start_export(p_value: bool) -> void:
 	var err: int = data.export_image(file_name_out, map_type)
 	print("Terrain3DImporter: Export error status: ", err, " ", error_string(err))
-	
+

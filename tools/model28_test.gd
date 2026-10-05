@@ -22,9 +22,17 @@ func run_test() -> void:
 	car.update_wheel_visuals([{"spin":1.2,"steer_angle":0.55},{"spin":1.2,"steer_angle":0.55},{"spin":1.2,"steer_angle":0.55},{"spin":1.2,"steer_angle":0.55}])
 	for spin in car.wheel_spins:assert(absf(spin.rotation.x+1.2)<0.0001)
 	assert(absf(car.wheels[0].rotation.y+0.55)<0.0001,"imported front wheel steers")
-	var lens := Visual.find_named(car.body,"Red rear lens")
-	assert(lens is MeshInstance3D and lens.get_active_material(0)==car.rear_lamps,"imported lamps bind to per-car brake material")
+	var bound_lamps := count_brake_surfaces(car.body,car.rear_lamps)
+	assert(bound_lamps>0,"imported lamps bind to per-car brake material")
 	car.set_braking(true);assert(car.rear_lamps.emission_energy_multiplier>0.8)
 	car.set_braking(false);assert(car.rear_lamps.emission_energy_multiplier<0.1)
-	print("PASS: shipped Meshy model, triangle budget, metre fit, native collider, four centred rotating/steering wheels, live brake lamps")
+	print("PASS: shipped Lovo reference model, triangle budget, metre fit, native collider, four centred rotating/steering wheels, live brake lamps")
 	car.queue_free();native.queue_free();await process_frame;quit()
+
+func count_brake_surfaces(node: Node, mat: Material) -> int:
+	var count := 0
+	if node is MeshInstance3D and node.mesh!=null:
+		for i in node.mesh.get_surface_count():
+			if node.get_active_material(i)==mat and node.visible:count+=1
+	for child in node.get_children():count+=count_brake_surfaces(child,mat)
+	return count

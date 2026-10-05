@@ -1,4 +1,4 @@
-# Copyright © 2025 Cory Petkovsek, Roope Palmroos, and Contributors.
+# Copyright © 2023-2026 Cory Petkovsek, Roope Palmroos, and Contributors.
 #
 # This is an example of using a particle shader with Terrain3D.
 # To use it, add `Terrain3DParticles.tscn` to your scene and assign the terrain.
@@ -45,7 +45,7 @@ extends Node3D
 		_set_offsets()
 
 
-## Grid width. Must be odd. 
+## Grid width. Must be odd.
 ## Higher values cull slightly better, draw further out.
 @export_range(1, 15, 2) var grid_width: int = 9:
 	set(value):

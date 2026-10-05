@@ -1,6 +1,6 @@
 {
   "_assumption": true,
-  "notes": "User-supplied Meshy sedan, reduced and modified for the fictional Lovo. Original horizontal grille, unmarked wheels and rear panel. Appearance only; native physics and colliders are retained. No legal clearance of model/name is implied.",
+  "notes": "Original clean reference reconstruction from the supplied Meshy silhouette. Rounded 195/65R15 tyres, tread geometry, recessed five-spoke rims and reflective clean PBR surfaces. No source reflection atlas/brand logos are shipped in this model. Visual only; native physics and collision remain separate.",
   "lovo940voc": {
     "scene_path": "res://assets/vehicles/lovo940voc.glb",
     "target_length_m": 4.87,
@@ -13,6 +13,6 @@
     },
     "max_triangles": 100000,
     "center_wheels_on_native_pivots": true,
-    "brake_material_name": "Rear red lens"
+    "brake_material_name": "Lovo brake lens"
   }
 }

@@ -1,4 +1,4 @@
-# Copyright © 2025 Cory Petkovsek, Roope Palmroos, and Contributors.
+# Copyright © 2023-2026 Cory Petkovsek, Roope Palmroos, and Contributors.
 # Toolbar for Terrain3D
 extends VFlowContainer
 
@@ -33,32 +33,32 @@ func _ready() -> void:
 	add_tool_group.pressed.connect(_on_tool_selected)
 	sub_tool_group.pressed.connect(_on_tool_selected)
 
-	add_tool_button({ "tool":Terrain3DEditor.REGION, 
+	add_tool_button({ "tool":Terrain3DEditor.REGION,
 		"add_text":"Add Region (E)", "add_op":Terrain3DEditor.ADD, "add_icon":ICON_REGION_ADD,
 		"sub_text":"Remove Region", "sub_op":Terrain3DEditor.SUBTRACT, "sub_icon":ICON_REGION_REMOVE })
-	
+
 	add_child(HSeparator.new())
-	
-	add_tool_button({ "tool":Terrain3DEditor.SCULPT, 
+
+	add_tool_button({ "tool":Terrain3DEditor.SCULPT,
 		"add_text":"Raise (R)", "add_op":Terrain3DEditor.ADD, "add_icon":ICON_HEIGHT_ADD,
 		"sub_text":"Lower (R)", "sub_op":Terrain3DEditor.SUBTRACT, "sub_icon":ICON_HEIGHT_SUB })
 
-	add_tool_button({ "tool":Terrain3DEditor.SCULPT, 
+	add_tool_button({ "tool":Terrain3DEditor.SCULPT,
 		"add_text":"Smooth (Shift)", "add_op":Terrain3DEditor.AVERAGE, "add_icon":ICON_HEIGHT_SMOOTH })
 
-	add_tool_button({ "tool":Terrain3DEditor.HEIGHT, 
+	add_tool_button({ "tool":Terrain3DEditor.HEIGHT,
 		"add_text":"Height (H)", "add_op":Terrain3DEditor.ADD, "add_icon":ICON_HEIGHT_FLAT,
 		"sub_text":"Height (H)", "sub_op":Terrain3DEditor.SUBTRACT, "sub_icon":ICON_HEIGHT_FLAT })
 
-	add_tool_button({ "tool":Terrain3DEditor.SCULPT, 
+	add_tool_button({ "tool":Terrain3DEditor.SCULPT,
 		"add_text":"Slope (S)", "add_op":Terrain3DEditor.GRADIENT, "add_icon":ICON_HEIGHT_SLOPE })
 
 	add_child(HSeparator.new())
 
-	add_tool_button({ "tool":Terrain3DEditor.TEXTURE, 
+	add_tool_button({ "tool":Terrain3DEditor.TEXTURE,
 		"add_text":"Paint Texture (B)", "add_op":Terrain3DEditor.REPLACE, "add_icon":ICON_PAINT_TEXTURE })
 
-	add_tool_button({ "tool":Terrain3DEditor.TEXTURE, 
+	add_tool_button({ "tool":Terrain3DEditor.TEXTURE,
 		"add_text":"Spray Texture (V)", "add_op":Terrain3DEditor.ADD, "add_icon":ICON_SPRAY_TEXTURE })
 
 	add_tool_button({ "tool":Terrain3DEditor.AUTOSHADER,
@@ -70,7 +70,7 @@ func _ready() -> void:
 	add_tool_button({ "tool":Terrain3DEditor.COLOR,
 		"add_text":"Paint Color (C)", "add_op":Terrain3DEditor.ADD, "add_icon":ICON_COLOR,
 		"sub_text":"Remove Color (C)", "sub_op":Terrain3DEditor.SUBTRACT })
-	
+
 	add_tool_button({ "tool":Terrain3DEditor.ROUGHNESS,
 		"add_text":"Paint Wetness (W)", "add_op":Terrain3DEditor.ADD, "add_icon":ICON_WETNESS,
 		"sub_text":"Remove Wetness (W)", "sub_op":Terrain3DEditor.SUBTRACT })

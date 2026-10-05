@@ -1,0 +1,14 @@
+{
+  "source": "User Meshy silhouette as visual guide; historical source hashes in provenance28.json",
+  "sha256": "32bce24a9d47cb5df0b846fdf378992622b75f4e4baf81293f0c94743fc9b238",
+  "triangles": 39878,
+  "bytes": 2016364,
+  "embedded_images": 0,
+  "changes": [
+    "Original closed reference sedan replaces overlapping AI source geometry",
+    "Rounded 195/65R15 tyres with tread and unmarked recessed rims",
+    "Merged static detail and four independently animated wheels"
+  ],
+  "_assumption": true,
+  "legal_status": "Original artistic geometry; manufacturer affiliation and trademark/design clearance not established"
+}
