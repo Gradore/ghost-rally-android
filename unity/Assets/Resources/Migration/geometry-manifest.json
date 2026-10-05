@@ -3,98 +3,98 @@
     {
       "source": "apex.glb",
       "output": "apex.grmesh",
-      "sha256": "d482ebd1fb2a4f143c6615141fd572d77cc4d3d63798dad71c221c6c721dacc9",
+      "sha256": "0d709fa3ac2f12ca17a7275a86a828027fb00f16853a49e44280e5098eecccf2",
       "nodes": 46,
       "triangles": 10692,
-      "bytes": 805611
+      "bytes": 136238
     },
     {
       "source": "kestrel_s1_evo.glb",
       "output": "kestrel_s1_evo.grmesh",
-      "sha256": "63802c74c4de687a440a53f27b3c2c4f4dc6ab494fc804f42069609cda19da16",
+      "sha256": "b35c4741317ade4492360daa8c1187ff5cde4b758101ba6a4444781d24e11132",
       "nodes": 46,
       "triangles": 10692,
-      "bytes": 805610
+      "bytes": 136241
     },
     {
       "source": "kite.glb",
       "output": "kite.grmesh",
-      "sha256": "8ba2674055ea2e0bc95453333b7436835598e844aaabc672deb3002b99688df2",
+      "sha256": "d0a7acf620124e36668b2d558dfbf8d4043fbdf7326aba776207536593d58a40",
       "nodes": 46,
       "triangles": 10656,
-      "bytes": 802817
+      "bytes": 135728
     },
     {
       "source": "lovo940voc.glb",
       "output": "lovo940voc.grmesh",
-      "sha256": "969a724db6047e263ccc2c0bd8d6cb4f5f7867e37aaf18b836c2e04c38dd27b8",
+      "sha256": "32b2887ed563523b5ebd4ae2261205e09c998861802548a6b1f41926e793c303",
       "nodes": 20,
       "triangles": 39878,
-      "bytes": 2353885
+      "bytes": 650764
     },
     {
       "source": "mira.glb",
       "output": "mira.grmesh",
-      "sha256": "bd99d8d5a16a0fdd8228f730f8822856ee303ba92355b8a16b2341b2d766279b",
+      "sha256": "2a991d03003ca79a2cc6be0fbe36d64415f1f35e65b972be58213f2e117eb6e2",
       "nodes": 46,
       "triangles": 10656,
-      "bytes": 802833
+      "bytes": 135734
     },
     {
       "source": "nord.glb",
       "output": "nord.grmesh",
-      "sha256": "134ffa2e47a78b79149d2c79548585263da728877002aef453c22b8d4cdc2f94",
+      "sha256": "ff62fbf63f757a2aa5ab7446f32736a29cb559c289d2bc44a5a48974eb48f1af",
       "nodes": 46,
       "triangles": 10692,
-      "bytes": 805611
+      "bytes": 136257
     },
     {
       "source": "rover.glb",
       "output": "rover.grmesh",
-      "sha256": "6de2ad444b78d22956aab37cf7c720f95e4b187f5e935b15750717896ea05fe6",
+      "sha256": "598b0bd376a72ae3cd7e9e82d367479b3edd38cadbabee415c47486be81f38d8",
       "nodes": 46,
       "triangles": 10692,
-      "bytes": 805611
+      "bytes": 136241
     },
     {
       "source": "strix.glb",
       "output": "strix.grmesh",
-      "sha256": "27bff30a3d89b5b585666aae20f87e5de68045b3e3e4a3adb1e8e41552294e7d",
+      "sha256": "824c61682e85c330a6d2f26055da44a77a767688961ca54ead1a6de461d06a68",
       "nodes": 46,
       "triangles": 10656,
-      "bytes": 802875
+      "bytes": 135747
     },
     {
       "source": "talon.glb",
       "output": "talon.grmesh",
-      "sha256": "ad6b82c26ad9b6c4c67594536aa1fbac5220acbbf12069abe5433b0f1e1ca58d",
+      "sha256": "803d235899028c1a18044d842d93c3854a69b3c1b215f5196980b2d560f3bc43",
       "nodes": 46,
       "triangles": 10692,
-      "bytes": 805611
+      "bytes": 136244
     },
     {
       "source": "vanta.glb",
       "output": "vanta.grmesh",
-      "sha256": "35417950dde8b2fc5bd23063f47e4af88d83d5ef322d1850e6c600b99306424e",
+      "sha256": "dc12174e5304c1daa24e7cf236faf5c3a281cee7dd869b0060f5d95b6c10e1d1",
       "nodes": 46,
       "triangles": 10656,
-      "bytes": 802862
+      "bytes": 135737
     },
     {
       "source": "venom.glb",
       "output": "venom.grmesh",
-      "sha256": "2297f869eece2882f449586c8bf9af9c415a01211e5948a4d122405083f79d73",
+      "sha256": "eca1d823bd03fba9155ba2e87820fa89b1d84691e181b425bd7865cdd15460db",
       "nodes": 46,
       "triangles": 10656,
-      "bytes": 802875
+      "bytes": 135760
     },
     {
       "source": "volt.glb",
       "output": "volt.grmesh",
-      "sha256": "759f49ddf21000d63c275389a420b1baf48188e6824ab997871c4ddd55fe67ac",
+      "sha256": "feff5aedfacee3c85865a2fc2fe3e0437bf73cfce5f811836441f662313bcac4",
       "nodes": 46,
       "triangles": 10656,
-      "bytes": 802831
+      "bytes": 135733
     }
   ]
 }

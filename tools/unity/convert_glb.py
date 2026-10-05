@@ -1,7 +1,7 @@
 """Convert our own GLB scene snapshots to Unity's importable GRMesh container.
 No external game APK contents are accepted. Reflect Z and triangle winding once.
 """
-import argparse,base64,hashlib,json,pathlib,struct
+import argparse,base64,gzip,hashlib,json,pathlib,struct
 
 def convert(path,output,textures):
  raw=path.read_bytes();assert raw[:4]==b'glTF'
@@ -44,7 +44,7 @@ def convert(path,output,textures):
   t=n.get('translation',[0,0,0]);q=n.get('rotation',[0,0,0,1]);sc=n.get('scale',[1,1,1]);matrix=n.get('matrix',[])
   if matrix:matrix=[v*(-1 if ((j%4==2) != (j//4==2)) else 1) for j,v in enumerate(matrix)]
   nodes.append({'name':n.get('name','node_'+str(i)),'mesh':n.get('mesh',-1),'children':n.get('children',[]),'position':[t[0],t[1],-t[2]],'rotation':[-q[0],-q[1],q[2],q[3]],'scale':sc,'matrix':matrix})
- header=json.dumps({'materials':mats,'meshes':meshes,'nodes':nodes,'roots':doc['scenes'][doc.get('scene',0)]['nodes']},separators=(',',':')).encode();output.parent.mkdir(parents=True,exist_ok=True);output.write_bytes(b'GRM1'+struct.pack('<I',len(header))+header+block)
+ header=json.dumps({'materials':mats,'meshes':meshes,'nodes':nodes,'roots':doc['scenes'][doc.get('scene',0)]['nodes']},separators=(',',':')).encode();output.parent.mkdir(parents=True,exist_ok=True);output.write_bytes(gzip.compress(b'GRM1'+struct.pack('<I',len(header))+header+block,compresslevel=9,mtime=0))
  return {'source':path.name,'output':output.name,'sha256':hashlib.sha256(output.read_bytes()).hexdigest(),'nodes':len(nodes),'triangles':sum(p['indices']//3 for m in meshes for p in m['primitives']),'bytes':output.stat().st_size}
 if __name__=='__main__':
  a=argparse.ArgumentParser();a.add_argument('input',type=pathlib.Path);a.add_argument('output',type=pathlib.Path);args=a.parse_args();reports=[]
