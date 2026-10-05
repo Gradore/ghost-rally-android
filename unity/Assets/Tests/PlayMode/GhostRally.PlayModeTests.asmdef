@@ -1,0 +1,1 @@
+{"name":"GhostRally.PlayModeTests","references":["GhostRally.Runtime"],"optionalUnityReferences":["TestAssemblies"],"defineConstraints":["UNITY_INCLUDE_TESTS"]}
