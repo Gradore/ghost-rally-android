@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 namespace GhostRally {
  public sealed class StageWorld:MonoBehaviour {
-  public StageSpec stage;public readonly List<GameObject> chunks=new List<GameObject>();Transform follow;float cullTimer;
+  public StageSpec stage;public readonly List<GameObject> chunks=new List<GameObject>();Transform follow;float cullTimer;readonly Dictionary<GameObject,Bounds> chunkBounds=new Dictionary<GameObject,Bounds>();
   public void Build(StageSpec s,Transform player){stage=s;follow=player;CreateRoad();
    var snapshot=Resources.Load<GameObject>("Migration/Geometry/scenery_"+s.routeIndex);
    if(snapshot!=null){var scenery=Instantiate(snapshot,transform);scenery.name="Transferred scenery";ConfigureScenery(scenery);}
@@ -18,6 +18,7 @@ namespace GhostRally {
     if(road){r.enabled=false;continue;}
     Vector3 c=r.bounds.center;var key=new Vector2Int(Mathf.FloorToInt(c.x/256),Mathf.FloorToInt(c.z/256));
     if(!groups.TryGetValue(key,out GameObject group)){group=new GameObject("SceneryChunk "+key);group.transform.SetParent(transform,false);group.transform.position=new Vector3((key.x+.5f)*256,0,(key.y+.5f)*256);groups.Add(key,group);chunks.Add(group);}
+    if(chunkBounds.TryGetValue(group,out Bounds bounds)){bounds.Encapsulate(r.bounds);chunkBounds[group]=bounds;}else chunkBounds[group]=r.bounds;
     // Mesh-only leaves can be reparented safely; keep their world pose.
     r.transform.SetParent(group.transform,true);
     var filter=r.GetComponent<MeshFilter>();if(filter==null)continue;
@@ -43,7 +44,7 @@ namespace GhostRally {
   public static Material SurfaceMaterial(bool gravel){var m=new Material(Shader.Find("Universal Render Pipeline/Lit")){enableInstancing=true};var texture=Resources.Load<Texture2D>(gravel?"Migration/SourceTextures/nature/gravel_floor_diff":"Migration/SourceTextures/nature/road_asphalt_02_diff");if(texture!=null)m.SetTexture("_BaseMap",texture);m.SetColor("_BaseColor",gravel?new Color(.63f,.56f,.45f):new Color(.4f,.42f,.44f));m.SetFloat("_Smoothness",.12f);return m;}
   void CreateFallbackGround(){Vector3 lo=stage.samples[0].Position,hi=lo;foreach(var s in stage.samples){lo=Vector3.Min(lo,s.Position);hi=Vector3.Max(hi,s.Position);}var go=GameObject.CreatePrimitive(PrimitiveType.Cube);go.name="Fallback ground";go.transform.SetParent(transform,false);go.transform.position=new Vector3((hi.x+lo.x)*.5f,-.65f,(hi.z+lo.z)*.5f);go.transform.localScale=new Vector3(hi.x-lo.x+500,1,hi.z-lo.z+500);go.GetComponent<MeshRenderer>().sharedMaterial=SurfaceMaterial(true);}
   void CreateTrees(){var rng=new System.Random(stage.routeIndex+21);var material=new Material(Shader.Find("Universal Render Pipeline/Lit")){color=new Color(.16f,.28f,.12f),enableInstancing=true};for(int i=0;i<stage.samples.Length;i+=20)for(int side=-1;side<=1;side+=2){var p=stage.samples[i].Position;var dir=(stage.samples[Mathf.Min(i+1,stage.samples.Length-1)].Position-stage.samples[Mathf.Max(0,i-1)].Position).normalized;p+=Vector3.Cross(Vector3.up,dir)*side*(18+(float)rng.NextDouble()*22);var tree=GameObject.CreatePrimitive(PrimitiveType.Capsule);tree.transform.SetParent(transform,false);tree.transform.position=p+Vector3.up*4;tree.transform.localScale=new Vector3(3,4,3);tree.GetComponent<MeshRenderer>().sharedMaterial=material;chunks.Add(tree);}}
-  void Update(){cullTimer-=Time.unscaledDeltaTime;if(cullTimer>0||follow==null)return;cullTimer=.4f;foreach(var go in chunks)if(go!=null){var d=go.transform.position-follow.position;d.y=0;go.SetActive(d.sqrMagnitude<950*950);}}
+  void Update(){cullTimer-=Time.unscaledDeltaTime;if(cullTimer>0||follow==null)return;cullTimer=.4f;foreach(var go in chunks)if(go!=null){var d=go.transform.position-follow.position;d.y=0;float distance=chunkBounds.TryGetValue(go,out Bounds bounds)?bounds.SqrDistance(follow.position):d.sqrMagnitude;go.SetActive(distance<950*950);}}
   public int NearestSegment(Vector3 p,int hint){int best=Mathf.Clamp(hint,0,stage.samples.Length-2);float distance=float.PositiveInfinity;int from=Mathf.Max(0,best-40),to=Mathf.Min(stage.samples.Length-2,best+80);for(int i=from;i<=to;i++){float d=(p-stage.samples[i].Position).sqrMagnitude;if(d<distance){distance=d;best=i;}}return best;}
   public Vector3 At(float distance){int i=Mathf.Clamp(Mathf.FloorToInt(distance/5),0,stage.samples.Length-2);var a=stage.samples[i];var b=stage.samples[i+1];return Vector3.Lerp(a.Position,b.Position,Mathf.InverseLerp(a.distance,b.distance,distance));}
   public Quaternion Heading(float distance){return Quaternion.LookRotation((At(Mathf.Min(stage.length,distance+5))-At(Mathf.Max(0,distance-5))).normalized,Vector3.up);}

@@ -32,7 +32,8 @@ for p in sorted((assets/'Geometry').glob('*.grmesh')):
  if not p.stem.startswith('scenery'):
   names=[n['name'] for n in d['nodes']];assert all(names.count(n)==1 for n in ['wheel_fl','wheel_fr','wheel_rl','wheel_rr']),p.name
  manifest.append({'file':p.name,'sha256':hashlib.sha256(stored).hexdigest(),'bytes':len(stored),'nodes':len(d['nodes']),'meshes':len(d['meshes']),'uniqueTriangles':triangles})
-print('PASS: 14 geometry containers, finite attributes, valid indices, texture sources and 48 independent wheels')
+assert len(manifest)==29
+print('PASS: 29 geometry containers, all 17 scenery snapshots, finite attributes, valid indices, texture sources and 48 independent wheels')
 cal=json.loads((assets/'Calibration/lovo940voc.json').read_text());assert cal['mass']==1350 and cal['wheelRadius']==.317 and cal['wheelbase']==2.77
 (assets/'validation-manifest.json').write_text(json.dumps({'geometry':manifest,'sourceCorridorMaxM':max_deviation,'unityEditorExecuted':False},indent=2))
 print('PASS: stock Lovo calibration preserved; Unity runtime/build verification still pending')

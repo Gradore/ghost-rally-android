@@ -21,7 +21,7 @@ namespace GhostRally.Editor {
     int length=reader.ReadInt32();var d=JsonUtility.FromJson<Document>(System.Text.Encoding.UTF8.GetString(reader.ReadBytes(length)));long start=reader.BaseStream.Position;
     var materials=new Material[d.materials.Length];
     for(int i=0;i<materials.Length;i++) {
-     var s=d.materials[i];var m=new Material(Shader.Find(s.worldAtlas?"GhostRally/WorldAtlas":"Universal Render Pipeline/Lit")){name=s.name,enableInstancing=true};
+     var s=d.materials[i];if(s.worldAtlas)ctx.DependsOnSourceAsset("Assets/Shaders/WorldAtlas.shader");var shader=s.worldAtlas?AssetDatabase.LoadAssetAtPath<Shader>("Assets/Shaders/WorldAtlas.shader"):Shader.Find("Universal Render Pipeline/Lit");var m=new Material(shader){name=s.name,enableInstancing=true};
      m.SetColor("_BaseColor",new Color(s.color[0],s.color[1],s.color[2],s.color[3]));m.SetFloat("_Metallic",s.metallic);m.SetFloat("_Smoothness",1-s.roughness);
      m.SetFloat("_Cull",s.doubleSided?0:2);if(s.worldAtlas){m.SetFloat("_Kind",s.atlasKind);foreach(var pair in new[]{new[]{"_Brick","Bricks001"},new[]{"_Plaster","Plaster002"}}){string folder="Assets/Resources/Migration/SourceTextures/textures/facades27/"+pair[1]+"_1K-JPG_";foreach(var map in new[]{new[]{"Map","Color"},new[]{"Normal","NormalGL"},new[]{"Rough","Roughness"}}){string source=folder+map[1]+".jpg";ctx.DependsOnSourceAsset(source);m.SetTexture(pair[0]+map[0],AssetDatabase.LoadAssetAtPath<Texture2D>(source));}}}
      if(!string.IsNullOrEmpty(s.texture)){ctx.DependsOnSourceAsset(s.texture);m.SetTexture("_BaseMap",AssetDatabase.LoadAssetAtPath<Texture2D>(s.texture));}

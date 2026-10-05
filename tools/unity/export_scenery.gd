@@ -48,7 +48,8 @@ func visit(node: Node,world: Node) -> void:
   for i in range(0,mm.instance_count,step):add_mesh(mm.mesh,node.global_transform*mm.get_instance_transform(i),node.material_override,str(node.name)+"_"+str(i))
  for child in node.get_children():visit(child,world)
 func run() -> void:
- for index in [3,16]:
+ for index in range(17):
+  if OS.get_cmdline_user_args().has("--remaining") and index in [3,16]:continue
   meshes=[];materials=[];nodes=[];mesh_cache={};mat_cache={};binary=PackedByteArray()
   var world := TrackWorld.new();root.add_child(world);world.build(GameData.TRACKS[index]);visit(world,world)
   if index==3:
