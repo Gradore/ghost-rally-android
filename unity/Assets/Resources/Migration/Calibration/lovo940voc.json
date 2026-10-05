@@ -1,0 +1,50 @@
+{
+  "assumption": true,
+  "mass": 1350,
+  "wheelbase": 2.77,
+  "track": 1.46,
+  "cgHeight": 0.52,
+  "frontFraction": 0.53,
+  "wheelRadius": 0.317,
+  "finalDrive": 4.1,
+  "redline": 6200,
+  "shiftUp": 5600,
+  "drag": 0.527,
+  "efficiency": 0.85,
+  "spring": 32000,
+  "damper": 3200,
+  "steeringLock": 37.0,
+  "gears": [
+    3.71,
+    2.16,
+    1.37,
+    1.0,
+    0.82
+  ],
+  "torque": [
+    {
+      "rpm": 900,
+      "torque": 125
+    },
+    {
+      "rpm": 2000,
+      "torque": 178
+    },
+    {
+      "rpm": 2750,
+      "torque": 194
+    },
+    {
+      "rpm": 4000,
+      "torque": 195
+    },
+    {
+      "rpm": 5400,
+      "torque": 170.4
+    },
+    {
+      "rpm": 6200,
+      "torque": 135
+    }
+  ]
+}

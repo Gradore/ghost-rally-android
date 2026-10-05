@@ -1,0 +1,118 @@
+{
+  "geometry": [
+    {
+      "file": "apex.grmesh",
+      "sha256": "0d709fa3ac2f12ca17a7275a86a828027fb00f16853a49e44280e5098eecccf2",
+      "bytes": 136238,
+      "nodes": 46,
+      "meshes": 31,
+      "uniqueTriangles": 10692
+    },
+    {
+      "file": "kestrel_s1_evo.grmesh",
+      "sha256": "b35c4741317ade4492360daa8c1187ff5cde4b758101ba6a4444781d24e11132",
+      "bytes": 136241,
+      "nodes": 46,
+      "meshes": 31,
+      "uniqueTriangles": 10692
+    },
+    {
+      "file": "kite.grmesh",
+      "sha256": "d0a7acf620124e36668b2d558dfbf8d4043fbdf7326aba776207536593d58a40",
+      "bytes": 135728,
+      "nodes": 46,
+      "meshes": 31,
+      "uniqueTriangles": 10656
+    },
+    {
+      "file": "lovo940voc.grmesh",
+      "sha256": "32b2887ed563523b5ebd4ae2261205e09c998861802548a6b1f41926e793c303",
+      "bytes": 650764,
+      "nodes": 20,
+      "meshes": 5,
+      "uniqueTriangles": 39878
+    },
+    {
+      "file": "mira.grmesh",
+      "sha256": "2a991d03003ca79a2cc6be0fbe36d64415f1f35e65b972be58213f2e117eb6e2",
+      "bytes": 135734,
+      "nodes": 46,
+      "meshes": 31,
+      "uniqueTriangles": 10656
+    },
+    {
+      "file": "nord.grmesh",
+      "sha256": "ff62fbf63f757a2aa5ab7446f32736a29cb559c289d2bc44a5a48974eb48f1af",
+      "bytes": 136257,
+      "nodes": 46,
+      "meshes": 31,
+      "uniqueTriangles": 10692
+    },
+    {
+      "file": "rover.grmesh",
+      "sha256": "598b0bd376a72ae3cd7e9e82d367479b3edd38cadbabee415c47486be81f38d8",
+      "bytes": 136241,
+      "nodes": 46,
+      "meshes": 31,
+      "uniqueTriangles": 10692
+    },
+    {
+      "file": "scenery_16.grmesh",
+      "sha256": "95e6df808fd64b02696de5960a82e824e4fc9d540c747a23bc11ca41fbabf3e1",
+      "bytes": 16203302,
+      "nodes": 25832,
+      "meshes": 1505,
+      "uniqueTriangles": 891110
+    },
+    {
+      "file": "scenery_3.grmesh",
+      "sha256": "f2e84a9cd72c0352737a04f592796bbe0f4d7b3927ec53c589f61a39513cc955",
+      "bytes": 4335944,
+      "nodes": 53558,
+      "meshes": 9061,
+      "uniqueTriangles": 364606
+    },
+    {
+      "file": "strix.grmesh",
+      "sha256": "824c61682e85c330a6d2f26055da44a77a767688961ca54ead1a6de461d06a68",
+      "bytes": 135747,
+      "nodes": 46,
+      "meshes": 31,
+      "uniqueTriangles": 10656
+    },
+    {
+      "file": "talon.grmesh",
+      "sha256": "803d235899028c1a18044d842d93c3854a69b3c1b215f5196980b2d560f3bc43",
+      "bytes": 136244,
+      "nodes": 46,
+      "meshes": 31,
+      "uniqueTriangles": 10692
+    },
+    {
+      "file": "vanta.grmesh",
+      "sha256": "dc12174e5304c1daa24e7cf236faf5c3a281cee7dd869b0060f5d95b6c10e1d1",
+      "bytes": 135737,
+      "nodes": 46,
+      "meshes": 31,
+      "uniqueTriangles": 10656
+    },
+    {
+      "file": "venom.grmesh",
+      "sha256": "eca1d823bd03fba9155ba2e87820fa89b1d84691e181b425bd7865cdd15460db",
+      "bytes": 135760,
+      "nodes": 46,
+      "meshes": 31,
+      "uniqueTriangles": 10656
+    },
+    {
+      "file": "volt.grmesh",
+      "sha256": "feff5aedfacee3c85865a2fc2fe3e0437bf73cfce5f811836441f662313bcac4",
+      "bytes": 135733,
+      "nodes": 46,
+      "meshes": 31,
+      "uniqueTriangles": 10656
+    }
+  ],
+  "sourceCorridorMaxM": 2.7236701211927437,
+  "unityEditorExecuted": false
+}

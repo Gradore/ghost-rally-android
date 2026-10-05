@@ -1,0 +1,6 @@
+{
+  "android_economy":{"hz":240,"_assumption":true},
+  "android_balanced":{"hz":360,"_assumption":true},
+  "desktop_reference":{"hz":720,"_assumption":true},
+  "notes":"Presets require device profiling; frequency alone does not establish realism or determinism. Native/C# migration is a separate acceptance milestone."
+}

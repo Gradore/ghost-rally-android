@@ -1,0 +1,45 @@
+name: Unity migration validation and Android preview
+on:
+  pull_request:
+    paths: ['unity/**', 'tools/unity/**', '.github/workflows/unity-migration.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-and-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install numpy tree-sitter tree-sitter-c-sharp
+      - run: python tools/unity/validate_migration.py
+      - run: python tools/unity/check_csharp_syntax.py
+  android-preview:
+    if: github.event_name == 'workflow_dispatch'
+    needs: source-and-data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require Unity activation
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        run: |
+          if [ -z "$UNITY_LICENSE" ]; then
+            echo '::error::A Unity activation/license is required. No Unity APK can be produced by this workflow without it.'
+            exit 1
+          fi
+      - uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          projectPath: unity
+          unityVersion: 6000.0.82f1
+          targetPlatform: Android
+          buildMethod: GhostRally.Editor.BuildProject.AndroidPreview
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GhostRally-Unity-Android-preview
+          path: unity/Builds/GhostRally-Unity-preview.apk
+          if-no-files-found: error

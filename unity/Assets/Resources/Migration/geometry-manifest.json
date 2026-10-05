@@ -1,0 +1,100 @@
+{
+  "items": [
+    {
+      "source": "apex.glb",
+      "output": "apex.grmesh",
+      "sha256": "d482ebd1fb2a4f143c6615141fd572d77cc4d3d63798dad71c221c6c721dacc9",
+      "nodes": 46,
+      "triangles": 10692,
+      "bytes": 805611
+    },
+    {
+      "source": "kestrel_s1_evo.glb",
+      "output": "kestrel_s1_evo.grmesh",
+      "sha256": "63802c74c4de687a440a53f27b3c2c4f4dc6ab494fc804f42069609cda19da16",
+      "nodes": 46,
+      "triangles": 10692,
+      "bytes": 805610
+    },
+    {
+      "source": "kite.glb",
+      "output": "kite.grmesh",
+      "sha256": "8ba2674055ea2e0bc95453333b7436835598e844aaabc672deb3002b99688df2",
+      "nodes": 46,
+      "triangles": 10656,
+      "bytes": 802817
+    },
+    {
+      "source": "lovo940voc.glb",
+      "output": "lovo940voc.grmesh",
+      "sha256": "969a724db6047e263ccc2c0bd8d6cb4f5f7867e37aaf18b836c2e04c38dd27b8",
+      "nodes": 20,
+      "triangles": 39878,
+      "bytes": 2353885
+    },
+    {
+      "source": "mira.glb",
+      "output": "mira.grmesh",
+      "sha256": "bd99d8d5a16a0fdd8228f730f8822856ee303ba92355b8a16b2341b2d766279b",
+      "nodes": 46,
+      "triangles": 10656,
+      "bytes": 802833
+    },
+    {
+      "source": "nord.glb",
+      "output": "nord.grmesh",
+      "sha256": "134ffa2e47a78b79149d2c79548585263da728877002aef453c22b8d4cdc2f94",
+      "nodes": 46,
+      "triangles": 10692,
+      "bytes": 805611
+    },
+    {
+      "source": "rover.glb",
+      "output": "rover.grmesh",
+      "sha256": "6de2ad444b78d22956aab37cf7c720f95e4b187f5e935b15750717896ea05fe6",
+      "nodes": 46,
+      "triangles": 10692,
+      "bytes": 805611
+    },
+    {
+      "source": "strix.glb",
+      "output": "strix.grmesh",
+      "sha256": "27bff30a3d89b5b585666aae20f87e5de68045b3e3e4a3adb1e8e41552294e7d",
+      "nodes": 46,
+      "triangles": 10656,
+      "bytes": 802875
+    },
+    {
+      "source": "talon.glb",
+      "output": "talon.grmesh",
+      "sha256": "ad6b82c26ad9b6c4c67594536aa1fbac5220acbbf12069abe5433b0f1e1ca58d",
+      "nodes": 46,
+      "triangles": 10692,
+      "bytes": 805611
+    },
+    {
+      "source": "vanta.glb",
+      "output": "vanta.grmesh",
+      "sha256": "35417950dde8b2fc5bd23063f47e4af88d83d5ef322d1850e6c600b99306424e",
+      "nodes": 46,
+      "triangles": 10656,
+      "bytes": 802862
+    },
+    {
+      "source": "venom.glb",
+      "output": "venom.grmesh",
+      "sha256": "2297f869eece2882f449586c8bf9af9c415a01211e5948a4d122405083f79d73",
+      "nodes": 46,
+      "triangles": 10656,
+      "bytes": 802875
+    },
+    {
+      "source": "volt.glb",
+      "output": "volt.grmesh",
+      "sha256": "759f49ddf21000d63c275389a420b1baf48188e6824ab997871c4ddd55fe67ac",
+      "nodes": 46,
+      "triangles": 10656,
+      "bytes": 802831
+    }
+  ]
+}
